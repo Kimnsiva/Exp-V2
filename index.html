@@ -242,7 +242,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
     <div class="login-sub">เลือกโปรไฟล์เพื่อเข้าใช้งาน</div>
 
     <div id="profile-list" class="profile-list"></div>
-    <button class="btn-new-profile" onclick="showNewProfileModal()">+ เพิ่มโปรไฟล์ใหม่</button>
     <button class="btn-admin-login" onclick="showAdminLogin()">🔐 เข้าสู่ระบบ Admin</button>
 
     <!-- PIN pad (hidden by default) -->
@@ -475,7 +474,10 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   <div class="content" style="max-width:600px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div style="font-size:15px;font-weight:600">จัดการโปรไฟล์ทั้งหมด</div>
-      <button class="btn btn-dark" onclick="admRefresh()">↻ รีเฟรช</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-dark" onclick="showNewProfileModal()">+ สร้างโปรไฟล์</button>
+        <button class="btn btn-ghost" onclick="admRefresh()">↻ รีเฟรช</button>
+      </div>
     </div>
     <div id="adm-profile-list"></div>
   </div>
