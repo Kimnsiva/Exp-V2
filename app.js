@@ -4,7 +4,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const BANKS = ['KTC','Kbank','SP','SCB','BBL'];
-const COLORS = ['#34C759','#007AFF','#FF3B30','#AF52DE','#FF9500','#5AC8FA','#FF2D55','#5856D6']; // ปรับสี Default นิดหน่อยให้เป็น System Colors
+const COLORS = ['#34C759','#007AFF','#FF3B30','#AF52DE','#FF9500','#5AC8FA','#FF2D55','#5856D6']; 
 
 let profiles = [];
 let currentProfile = null;
@@ -52,23 +52,17 @@ function selectColor(el) {
   el.classList.add('sel');
 }
 
-// ── PROFILES ──
+// ── PROFILES (อัปเดตใช้ Database 100%) ──
 async function loadProfiles() {
   try {
     const { data, error } = await sb.from('profiles').select('*').order('created_at');
     if (error) throw error;
-    const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
-    profiles = (data || []).map(p => ({ ...p, pin: pins[p.id] || '' }));
+    // ดึงรหัส PIN มาจากฐานข้อมูลโดยตรง
+    profiles = data || [];
   } catch(e) {
     console.error('loadProfiles error:', e);
     profiles = [];
   }
-}
-
-function savePinsLocal() {
-  const pins = {};
-  profiles.forEach(p => { if (p.pin) pins[p.id] = p.pin; });
-  localStorage.setItem('profile_pins', JSON.stringify(pins));
 }
 
 function renderProfileList() {
@@ -86,23 +80,13 @@ function renderProfileList() {
   `).join('');
 }
 
-// แทนที่ฟังก์ชัน selectProfile เดิม
 function selectProfile(id) {
   pinTarget = profiles.find(p => p.id === id);
   if (!pinTarget) return;
 
-  // 🛠️ ส่วนที่เพิ่มมาเพื่อแก้บั๊ก: เช็คว่าถ้าเปิดบนเครื่องใหม่ ให้ตั้ง PIN ใหม่
-  if (!pinTarget.pin || pinTarget.pin === '') {
-    const setupPin = prompt(`ดูเหมือนคุณจะใช้งานบนอุปกรณ์ใหม่\nกรุณาตั้งรหัส PIN (4-6 หลัก) สำหรับ "${pinTarget.name}" บนเครื่องนี้:`);
-    
-    if (!setupPin || setupPin.length < 4) {
-      alert('ต้องตั้งรหัส PIN อย่างน้อย 4 หลักเพื่อเข้าใช้งานครับ');
-      return; // ยกเลิกการเข้าระบบถ้าไม่ยอมตั้งรหัส
-    }
-    
-    // เซฟรหัสใหม่ลงในมือถือเครื่องนี้
-    pinTarget.pin = setupPin;
-    savePinsLocal();
+  if (!pinTarget.pin) {
+    alert('โปรไฟล์นี้ยังไม่มีการตั้ง PIN ในระบบ กรุณาสร้างใหม่ หรือแจ้ง Admin');
+    return;
   }
 
   pinBuffer = '';
@@ -137,8 +121,6 @@ function pinPress(key) {
   else if (pinBuffer.length < (pinTarget?.pin?.length || 6)) { pinBuffer += key; }
   
   renderPinDots();
-  
-  // 🛠️ ส่วนที่แก้บั๊ก: เพิ่มเงื่อนไข pinBuffer.length > 0 เพื่อกันการกดลบค่าว่างแล้วหลุดเข้าแอป
   if (pinBuffer.length > 0 && pinBuffer.length === pinTarget.pin.length) {
     setTimeout(() => checkPin(), 150);
   }
@@ -189,11 +171,12 @@ async function saveNewProfile() {
   const id = crypto.randomUUID();
   setSaving(true);
   try {
-    const { error } = await sb.from('profiles').insert({ id, name, color });
+    // บันทึก PIN ลงใน Database ด้วย
+    const { error } = await sb.from('profiles').insert({ id, name, color, pin });
     if (error) throw error;
+    
     const p = { id, name, pin, color };
     profiles.push(p);
-    savePinsLocal();
     closeOverlay('newprofile-overlay');
     renderProfileList();
     if (currentAdmin) admRefresh();
@@ -219,9 +202,45 @@ async function deleteProfile(id) {
     const { error } = await sb.from('profiles').delete().eq('id', id);
     if (error) throw error;
     profiles = profiles.filter(p => p.id !== id);
-    savePinsLocal();
     showProfileMgr();
   } catch(e) { alert(e.message); }
+}
+
+// ── USER CHANGE PIN ──
+function showUserChangePin() {
+  document.getElementById('up-old').value = '';
+  document.getElementById('up-new').value = '';
+  document.getElementById('up-confirm').value = '';
+  document.getElementById('up-error').textContent = '';
+  openOverlay('user-changepin-overlay');
+}
+
+async function confirmUserChangePin() {
+  const oldPin = document.getElementById('up-old').value.trim();
+  const newPin = document.getElementById('up-new').value.trim();
+  const confirmPin = document.getElementById('up-confirm').value.trim();
+  const err = document.getElementById('up-error');
+
+  if (!oldPin || !newPin || !confirmPin) return err.textContent = 'กรุณากรอกให้ครบทุกช่อง';
+  if (oldPin !== currentProfile.pin) return err.textContent = 'PIN ปัจจุบันไม่ถูกต้อง';
+  if (newPin.length < 4) return err.textContent = 'PIN ใหม่ต้องมีอย่างน้อย 4 หลัก';
+  if (newPin !== confirmPin) return err.textContent = 'PIN ใหม่ไม่ตรงกัน';
+
+  try {
+    err.textContent = 'กำลังบันทึก...';
+    // อัปเดตขึ้นฐานข้อมูล Supabase
+    const { error } = await sb.from('profiles').update({ pin: newPin }).eq('id', currentProfile.id);
+    if (error) throw error;
+
+    // อัปเดตในความจำของเครื่องตอนนี้
+    currentProfile.pin = newPin;
+    profiles = profiles.map(p => p.id === currentProfile.id ? { ...p, pin: newPin } : p);
+    
+    closeOverlay('user-changepin-overlay');
+    alert('เปลี่ยน PIN สำเร็จแล้ว ✅');
+  } catch(e) {
+    err.textContent = 'เกิดข้อผิดพลาด: ' + e.message;
+  }
 }
 
 // ── DATA ──
@@ -357,7 +376,7 @@ function renderTxnTable(data, balanceForward = 0) {
         ${!item.isCredit ? `
         <button class="act-btn e" onclick="openEditTxn('${item.id}')" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
         <button class="act-btn d" onclick="deleteTxnItem('${item.id}')" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-        ` : `<span class="muted" style="font-size:10px">จัดการที่แท็บบัตรเครดิต</span>`}
+        ` : `<span class="muted" style="font-size:10px">จัดการที่บัตรเครดิต</span>`}
       </td>
     </tr>`;
   }).join('');
@@ -652,13 +671,8 @@ async function admRefresh() {
 
 function admDeleteProfile(id, name) {
   if (!confirm('ลบโปรไฟล์ "' + name + '" และข้อมูลทั้งหมด?')) return;
-  let all = JSON.parse(localStorage.getItem('profiles') || '[]');
-  all = all.filter(p => p.id !== id);
   sb.from('profiles').delete().eq('id', id).then(({ error }) => {
     if (error) { alert(error.message); return; }
-    const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
-    delete pins[id];
-    localStorage.setItem('profile_pins', JSON.stringify(pins));
     admRefresh();
   });
 }
@@ -670,16 +684,22 @@ function showResetPin(id, name) {
   openOverlay('admin-resetpin-overlay');
 }
 
-function confirmResetPin() {
+async function confirmResetPin() {
   const newPin = document.getElementById('rp-pin').value.trim();
   if (!newPin || newPin.length < 4) return alert('PIN ต้องมีอย่างน้อย 4 หลัก');
-  const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
-  pins[resetPinTargetId] = newPin;
-  localStorage.setItem('profile_pins', JSON.stringify(pins));
-  profiles = profiles.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
-  closeOverlay('admin-resetpin-overlay');
-  alert('Reset PIN สำเร็จแล้ว ✅');
-  admRefresh();
+  
+  try {
+    // บันทึกการรีเซ็ตลง Database
+    const { error } = await sb.from('profiles').update({ pin: newPin }).eq('id', resetPinTargetId);
+    if (error) throw error;
+    
+    profiles = profiles.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
+    closeOverlay('admin-resetpin-overlay');
+    alert('Reset PIN สำเร็จแล้ว ✅');
+    admRefresh();
+  } catch(e) {
+    alert(e.message);
+  }
 }
 
 // ── UI HELPERS ──
