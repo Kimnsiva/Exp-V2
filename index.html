@@ -396,12 +396,22 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
     </div>
     <div class="fg"><label class="fl">รายการ</label><input class="fi" type="text" id="cf-item" placeholder="ชื่อสินค้า/บริการ"></div>
     <div class="fg2">
-      <div class="fg"><label class="fl">ยอด/เดือน</label><input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01"></div>
-      <div class="fg"><label class="fl">ดอกเบี้ย/เดือน (฿)</label><input class="fi" type="number" id="cf-interest" placeholder="0" step="0.01"></div>
+      <div class="fg"><label class="fl">ยอดเต็ม (฿)</label><input class="fi" type="number" id="cf-principal" placeholder="0" step="0.01" oninput="calcMonthlyPayment()"></div>
+      <div class="fg"><label class="fl">ดอกเบี้ย (%)</label><input class="fi" type="number" id="cf-interest-rate" placeholder="0" step="0.01" value="0" oninput="calcMonthlyPayment()"></div>
     </div>
     <div class="fg2">
+      <div class="fg"><label class="fl">งวดรวมทั้งหมด</label><input class="fi" type="number" id="cf-total-installments" placeholder="0" min="1" oninput="calcMonthlyPayment()"></div>
       <div class="fg"><label class="fl">งวดที่จ่ายแล้ว</label><input class="fi" type="number" id="cf-paid-installments" placeholder="0" min="0"></div>
-      <div class="fg"><label class="fl">งวดรวมทั้งหมด</label><input class="fi" type="number" id="cf-total-installments" placeholder="0" min="1"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg">
+        <label class="fl">ยอด/เดือน (คำนวณอัตโนมัติ)</label>
+        <input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01" style="background:var(--surface3);color:var(--text2)" readonly>
+      </div>
+      <div class="fg">
+        <label class="fl">ดอกเบี้ย/เดือน (฿)</label>
+        <input class="fi" type="number" id="cf-interest" placeholder="0" step="0.01" style="background:var(--surface3);color:var(--text2)" readonly>
+      </div>
     </div>
     <div class="modal-acts">
       <button class="btn btn-blue" onclick="saveCredit()" id="credit-save-btn">บันทึก</button>
@@ -886,6 +896,24 @@ async function deleteTxnItem(id) {
 }
 
 // ── CREDIT CRUD ──
+
+function calcMonthlyPayment() {
+  const principal = +document.getElementById('cf-principal').value || 0;
+  const rate = +document.getElementById('cf-interest-rate').value || 0;
+  const total = +document.getElementById('cf-total-installments').value || 0;
+  if (principal > 0 && total > 0) {
+    const totalInterest = principal * (rate / 100);
+    const totalAmount = principal + totalInterest;
+    const monthly = totalAmount / total;
+    const monthlyInterest = totalInterest / total;
+    document.getElementById('cf-amount').value = monthly.toFixed(2);
+    document.getElementById('cf-interest').value = monthlyInterest.toFixed(2);
+  } else {
+    document.getElementById('cf-amount').value = '';
+    document.getElementById('cf-interest').value = '';
+  }
+}
+
 function openCreditForm() {
   editCreditId = null;
   document.getElementById('credit-modal-title').textContent = 'เพิ่มรายการผ่อน';
@@ -894,6 +922,8 @@ function openCreditForm() {
   document.getElementById('cf-month').value = +document.getElementById('sel-month').value;
   document.getElementById('cf-bank').value = '';
   document.getElementById('cf-item').value = '';
+  document.getElementById('cf-principal').value = '';
+  document.getElementById('cf-interest-rate').value = '0';
   document.getElementById('cf-amount').value = '';
   document.getElementById('cf-interest').value = '';
   document.getElementById('cf-paid-installments').value = '';
@@ -911,22 +941,26 @@ function openEditCredit(id) {
   document.getElementById('cf-month').value = c.month;
   document.getElementById('cf-bank').value = c.bank;
   document.getElementById('cf-item').value = c.item;
-  document.getElementById('cf-amount').value = c.amount;
-  document.getElementById('cf-interest').value = c.interest || '';
-  document.getElementById('cf-paid-installments').value = c.paid_installments || '';
+  document.getElementById('cf-principal').value = c.principal || '';
+  document.getElementById('cf-interest-rate').value = c.interest_rate || 0;
   document.getElementById('cf-total-installments').value = c.total_installments || '';
+  document.getElementById('cf-paid-installments').value = c.paid_installments || '';
+  document.getElementById('cf-amount').value = c.amount || '';
+  document.getElementById('cf-interest').value = c.interest || '';
   openOverlay('credit-overlay');
 }
 
 async function saveCredit() {
   const bank = document.getElementById('cf-bank').value;
   const item = document.getElementById('cf-item').value.trim();
+  const principal = +document.getElementById('cf-principal').value || 0;
+  const interest_rate = +document.getElementById('cf-interest-rate').value || 0;
   const amount = +document.getElementById('cf-amount').value;
   const interest = +document.getElementById('cf-interest').value || 0;
   const paid_installments = +document.getElementById('cf-paid-installments').value || 0;
   const total_installments = +document.getElementById('cf-total-installments').value || 0;
-  if (!bank || !item || !amount) return alert('กรุณากรอกให้ครบ');
-  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, amount, interest, paid_installments, total_installments, profile_id: currentProfile.id };
+  if (!bank || !item || !principal || !total_installments) return alert('กรุณากรอกยอดเต็มและจำนวนงวดให้ครบ');
+  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, principal, interest_rate, amount, interest, paid_installments, total_installments, profile_id: currentProfile.id };
   setSaving(true);
   try {
     if (editCreditId) {
