@@ -553,12 +553,22 @@ function selectColor(el) {
 
 // ── PROFILES ──
 async function loadProfiles() {
-  const stored = localStorage.getItem('profiles');
-  profiles = stored ? JSON.parse(stored) : [];
+  try {
+    const { data, error } = await sb.from('profiles').select('*').order('created_at');
+    if (error) throw error;
+    // merge with local PINs (PIN ไม่เก็บใน Supabase)
+    const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
+    profiles = (data || []).map(p => ({ ...p, pin: pins[p.id] || '' }));
+  } catch(e) {
+    console.error('loadProfiles error:', e);
+    profiles = [];
+  }
 }
 
-function saveProfilesLocal() {
-  localStorage.setItem('profiles', JSON.stringify(profiles));
+function savePinsLocal() {
+  const pins = {};
+  profiles.forEach(p => { if (p.pin) pins[p.id] = p.pin; });
+  localStorage.setItem('profile_pins', JSON.stringify(pins));
 }
 
 function renderProfileList() {
@@ -657,11 +667,19 @@ async function saveNewProfile() {
   const pin = document.getElementById('np-pin').value.trim();
   if (!name || !pin || pin.length < 4) return alert('กรุณากรอกชื่อและ PIN อย่างน้อย 4 หลัก');
   const color = document.querySelector('.color-swatch.sel')?.dataset.color || COLORS[0];
-  const p = { id: crypto.randomUUID(), name, pin, color };
-  profiles.push(p);
-  saveProfilesLocal();
-  closeOverlay('newprofile-overlay');
-  renderProfileList();
+  const id = crypto.randomUUID();
+  setSaving(true);
+  try {
+    const { error } = await sb.from('profiles').insert({ id, name, color });
+    if (error) throw error;
+    const p = { id, name, pin, color };
+    profiles.push(p);
+    savePinsLocal();
+    closeOverlay('newprofile-overlay');
+    renderProfileList();
+    // ถ้าอยู่ใน admin panel ให้ refresh ด้วย
+    if (currentAdmin) admRefresh();
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
 }
 
 // ── PROFILE MANAGER ──
@@ -677,11 +695,15 @@ function showProfileMgr() {
   openOverlay('profilemgr-overlay');
 }
 
-function deleteProfile(id) {
+async function deleteProfile(id) {
   if (!confirm('ลบโปรไฟล์นี้?')) return;
-  profiles = profiles.filter(p => p.id !== id);
-  saveProfilesLocal();
-  showProfileMgr();
+  try {
+    const { error } = await sb.from('profiles').delete().eq('id', id);
+    if (error) throw error;
+    profiles = profiles.filter(p => p.id !== id);
+    savePinsLocal();
+    showProfileMgr();
+  } catch(e) { alert(e.message); }
 }
 
 // ── DATA ──
@@ -992,11 +1014,12 @@ function logoutAdmin() {
 async function admRefresh() {
   const list = document.getElementById('adm-profile-list');
   list.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:16px 0">กำลังโหลด...</div>';
-  // profiles stored in localStorage — load all
-  const allProfiles = JSON.parse(localStorage.getItem('profiles') || '[]');
-  admProfiles = allProfiles;
-  if (!allProfiles.length) { list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:16px 0">ไม่มีโปรไฟล์</div>'; return; }
-  list.innerHTML = allProfiles.map(p => `
+  try {
+    const { data, error } = await sb.from('profiles').select('*').order('created_at');
+    if (error) throw error;
+    admProfiles = data || [];
+    if (!admProfiles.length) { list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:16px 0">ไม่มีโปรไฟล์</div>'; return; }
+    list.innerHTML = admProfiles.map(p => `
     <div class="pm-item-admin">
       <div class="pm-av" style="background:${p.color};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${p.name.slice(0,2).toUpperCase()}</div>
       <div>
@@ -1017,11 +1040,15 @@ function admDeleteProfile(id, name) {
   if (!confirm('ลบโปรไฟล์ "' + name + '" และข้อมูลทั้งหมด?')) return;
   let all = JSON.parse(localStorage.getItem('profiles') || '[]');
   all = all.filter(p => p.id !== id);
-  localStorage.setItem('profiles', JSON.stringify(all));
-  // also delete from supabase
-  sb.from('transactions').delete().eq('profile_id', id);
-  sb.from('credit_installments').delete().eq('profile_id', id);
-  admRefresh();
+  // delete from Supabase (CASCADE จะลบ transactions และ credit_installments ด้วย)
+  sb.from('profiles').delete().eq('id', id).then(({ error }) => {
+    if (error) { alert(error.message); return; }
+    // update local pins
+    const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
+    delete pins[id];
+    localStorage.setItem('profile_pins', JSON.stringify(pins));
+    admRefresh();
+  });
 }
 
 function showResetPin(id, name) {
@@ -1034,11 +1061,14 @@ function showResetPin(id, name) {
 function confirmResetPin() {
   const newPin = document.getElementById('rp-pin').value.trim();
   if (!newPin || newPin.length < 4) return alert('PIN ต้องมีอย่างน้อย 4 หลัก');
-  let all = JSON.parse(localStorage.getItem('profiles') || '[]');
-  all = all.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
-  localStorage.setItem('profiles', JSON.stringify(all));
+  // update PIN in local storage
+  const pins = JSON.parse(localStorage.getItem('profile_pins') || '{}');
+  pins[resetPinTargetId] = newPin;
+  localStorage.setItem('profile_pins', JSON.stringify(pins));
+  // update in-memory profiles too
+  profiles = profiles.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
   closeOverlay('admin-resetpin-overlay');
-  alert('Reset PIN สำเร็จแล้ว');
+  alert('Reset PIN สำเร็จแล้ว ✅');
   admRefresh();
 }
 
