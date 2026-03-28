@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 <style>
 :root {
   --bg: #fafafa;
@@ -916,6 +915,12 @@ let admProfiles = [];
 let resetPinTargetId = null;
 
 
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 function showAdminChangePass() {
   document.getElementById('cp-old').value = '';
   document.getElementById('cp-new').value = '';
@@ -931,14 +936,14 @@ async function confirmChangePass() {
   const err = document.getElementById('cp-error');
   if (!oldPass || !newPass || !confirm) { err.textContent = 'กรุณากรอกให้ครบ'; return; }
   // verify old password against stored hash
-  const match = await bcrypt.compare(oldPass, currentAdmin.password);
-  if (!match) { err.textContent = 'Password ปัจจุบันไม่ถูกต้อง'; return; }
+  const hashedOld = await sha256(oldPass);
+  if (hashedOld !== currentAdmin.password) { err.textContent = 'Password ปัจจุบันไม่ถูกต้อง'; return; }
   if (newPass.length < 6) { err.textContent = 'Password ใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
   if (newPass !== confirm) { err.textContent = 'Password ใหม่ไม่ตรงกัน'; return; }
   try {
     err.textContent = 'กำลังบันทึก...';
     // hash new password before saving
-    const hashed = await bcrypt.hash(newPass, 10);
+    const hashed = await sha256(newPass);
     const { error } = await sb.from('admins').update({ password: hashed }).eq('id', currentAdmin.id);
     if (error) throw error;
     currentAdmin.password = hashed;
@@ -963,8 +968,8 @@ async function loginAdmin() {
     // fetch by username only, then verify hash client-side
     const { data, error } = await sb.from('admins').select('*').eq('username', username).single();
     if (error || !data) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
-    const match = await bcrypt.compare(password, data.password);
-    if (!match) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
+    const hashed = await sha256(password);
+    if (hashed !== data.password) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
     currentAdmin = data;
     closeOverlay('admin-login-overlay');
     enterAdminPanel();
