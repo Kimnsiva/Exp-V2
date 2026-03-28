@@ -135,8 +135,11 @@ function renderPinPad() {
 function pinPress(key) {
   if (key === '⌫') { pinBuffer = pinBuffer.slice(0,-1); }
   else if (pinBuffer.length < (pinTarget?.pin?.length || 6)) { pinBuffer += key; }
+  
   renderPinDots();
-  if (pinBuffer.length === pinTarget.pin.length) {
+  
+  // 🛠️ ส่วนที่แก้บั๊ก: เพิ่มเงื่อนไข pinBuffer.length > 0 เพื่อกันการกดลบค่าว่างแล้วหลุดเข้าแอป
+  if (pinBuffer.length > 0 && pinBuffer.length === pinTarget.pin.length) {
     setTimeout(() => checkPin(), 150);
   }
 }
