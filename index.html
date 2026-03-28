@@ -349,7 +349,7 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
           <div class="tcard-head"><span class="tcard-title">รายการผ่อนทั้งหมด</span></div>
           <div class="tscroll">
             <table>
-              <thead><tr><th>เดือน/ปี</th><th>ธนาคาร</th><th>รายการ</th><th class="r">ยอด/เดือน</th><th class="c">จัดการ</th></tr></thead>
+              <thead><tr><th>เดือน/ปี</th><th>ธนาคาร</th><th>รายการ</th><th class="r">ยอด/เดือน</th><th class="r">ดอกเบี้ย</th><th class="c">งวด</th><th class="c">จัดการ</th></tr></thead>
               <tbody id="credit-body"></tbody>
             </table>
           </div>
@@ -395,7 +395,14 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
       </select>
     </div>
     <div class="fg"><label class="fl">รายการ</label><input class="fi" type="text" id="cf-item" placeholder="ชื่อสินค้า/บริการ"></div>
-    <div class="fg"><label class="fl">ยอด/เดือน</label><input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01"></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ยอด/เดือน</label><input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01"></div>
+      <div class="fg"><label class="fl">ดอกเบี้ย/เดือน (฿)</label><input class="fi" type="number" id="cf-interest" placeholder="0" step="0.01"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">งวดที่จ่ายแล้ว</label><input class="fi" type="number" id="cf-paid-installments" placeholder="0" min="0"></div>
+      <div class="fg"><label class="fl">งวดรวมทั้งหมด</label><input class="fi" type="number" id="cf-total-installments" placeholder="0" min="1"></div>
+    </div>
     <div class="modal-acts">
       <button class="btn btn-blue" onclick="saveCredit()" id="credit-save-btn">บันทึก</button>
       <button class="btn btn-ghost" onclick="closeOverlay('credit-overlay')">ยกเลิก</button>
@@ -795,17 +802,27 @@ function renderCredit() {
   const cards = BANKS.filter(b => bankTotals[b]).map(b => `<div class="bank-card"><div class="bank-name">${b}</div><div class="bank-total">฿${bankTotals[b].toLocaleString()}</div></div>`).join('');
   bankGrid.innerHTML = cards || '';
   const body = document.getElementById('credit-body');
-  if (!credits.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">ไม่มีรายการผ่อน</td></tr>'; return; }
-  body.innerHTML = credits.sort((a,b)=>a.year-b.year||a.month-b.month).map(c => `<tr>
+  if (!credits.length) { body.innerHTML = '<tr class="empty-row"><td colspan="7">ไม่มีรายการผ่อน</td></tr>'; return; }
+  body.innerHTML = credits.sort((a,b)=>a.year-b.year||a.month-b.month).map(c => {
+    const paid = c.paid_installments || 0;
+    const total = c.total_installments || 0;
+    const remaining = total ? total - paid : null;
+    const installmentBadge = total
+      ? `<span title="จ่ายแล้ว ${paid}/${total} งวด, เหลือ ${remaining} งวด" style="font-size:11px;font-family:var(--mono);color:var(--text2)">${paid}/${total}</span>${remaining===0?` <span class="badge badge-line">หมดแล้ว</span>`:''}`
+      : '<span class="muted">-</span>';
+    return `<tr>
     <td>${MONTHS[c.month-1]} ${c.year}</td>
     <td><span class="badge badge-blue">${c.bank}</span></td>
     <td>${c.item}</td>
     <td class="r mono red">฿${c.amount.toLocaleString()}</td>
+    <td class="r mono">${(c.interest||0)>0?`<span class="red">฿${(c.interest).toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
+    <td class="c">${installmentBadge}</td>
     <td class="c">
       <button class="act-btn e" onclick="openEditCredit('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
       <button class="act-btn d" onclick="deleteCreditItem('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 // ── TXN CRUD ──
@@ -878,6 +895,9 @@ function openCreditForm() {
   document.getElementById('cf-bank').value = '';
   document.getElementById('cf-item').value = '';
   document.getElementById('cf-amount').value = '';
+  document.getElementById('cf-interest').value = '';
+  document.getElementById('cf-paid-installments').value = '';
+  document.getElementById('cf-total-installments').value = '';
   openOverlay('credit-overlay');
 }
 
@@ -892,6 +912,9 @@ function openEditCredit(id) {
   document.getElementById('cf-bank').value = c.bank;
   document.getElementById('cf-item').value = c.item;
   document.getElementById('cf-amount').value = c.amount;
+  document.getElementById('cf-interest').value = c.interest || '';
+  document.getElementById('cf-paid-installments').value = c.paid_installments || '';
+  document.getElementById('cf-total-installments').value = c.total_installments || '';
   openOverlay('credit-overlay');
 }
 
@@ -899,8 +922,11 @@ async function saveCredit() {
   const bank = document.getElementById('cf-bank').value;
   const item = document.getElementById('cf-item').value.trim();
   const amount = +document.getElementById('cf-amount').value;
+  const interest = +document.getElementById('cf-interest').value || 0;
+  const paid_installments = +document.getElementById('cf-paid-installments').value || 0;
+  const total_installments = +document.getElementById('cf-total-installments').value || 0;
   if (!bank || !item || !amount) return alert('กรุณากรอกให้ครบ');
-  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, amount, profile_id: currentProfile.id };
+  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, amount, interest, paid_installments, total_installments, profile_id: currentProfile.id };
   setSaving(true);
   try {
     if (editCreditId) {
