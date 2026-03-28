@@ -86,9 +86,25 @@ function renderProfileList() {
   `).join('');
 }
 
+// แทนที่ฟังก์ชัน selectProfile เดิม
 function selectProfile(id) {
   pinTarget = profiles.find(p => p.id === id);
   if (!pinTarget) return;
+
+  // 🛠️ ส่วนที่เพิ่มมาเพื่อแก้บั๊ก: เช็คว่าถ้าเปิดบนเครื่องใหม่ ให้ตั้ง PIN ใหม่
+  if (!pinTarget.pin || pinTarget.pin === '') {
+    const setupPin = prompt(`ดูเหมือนคุณจะใช้งานบนอุปกรณ์ใหม่\nกรุณาตั้งรหัส PIN (4-6 หลัก) สำหรับ "${pinTarget.name}" บนเครื่องนี้:`);
+    
+    if (!setupPin || setupPin.length < 4) {
+      alert('ต้องตั้งรหัส PIN อย่างน้อย 4 หลักเพื่อเข้าใช้งานครับ');
+      return; // ยกเลิกการเข้าระบบถ้าไม่ยอมตั้งรหัส
+    }
+    
+    // เซฟรหัสใหม่ลงในมือถือเครื่องนี้
+    pinTarget.pin = setupPin;
+    savePinsLocal();
+  }
+
   pinBuffer = '';
   document.getElementById('pin-who').textContent = pinTarget.name;
   document.getElementById('pin-error').textContent = '';
