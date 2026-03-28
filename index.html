@@ -582,7 +582,6 @@ function selectProfile(id) {
   pinBuffer = '';
   document.getElementById('pin-who').textContent = pinTarget.name;
   document.getElementById('pin-error').textContent = '';
-  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'none';
   document.getElementById('profile-list').style.display = 'none';
   document.querySelector('.login-sub').style.display = 'none';
   document.getElementById('pin-section').style.display = 'block';
@@ -594,7 +593,6 @@ function backToProfiles() {
   document.getElementById('pin-section').style.display = 'none';
   document.getElementById('profile-list').style.display = 'flex';
   document.querySelector('.login-sub').style.display = 'block';
-  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'block';
   pinTarget = null; pinBuffer = '';
 }
 
