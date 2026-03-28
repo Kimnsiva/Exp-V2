@@ -232,7 +232,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
 </head>
 <body data-theme="light">
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen" class="screen active">
   <div class="login-card">
     <div class="login-logo">
@@ -244,7 +243,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
     <div id="profile-list" class="profile-list"></div>
     <button class="btn-admin-login" onclick="showAdminLogin()">🔐 เข้าสู่ระบบ Admin</button>
 
-    <!-- PIN pad (hidden by default) -->
     <div id="pin-section" style="display:none">
       <div class="pin-back" onclick="backToProfiles()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -259,7 +257,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- APP SCREEN -->
 <div id="app-screen" class="screen">
   <div class="topbar">
     <div class="tb-logo">Expense</div>
@@ -293,7 +290,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
     <div id="page-loader" class="loader"><div class="spin"></div><span style="font-size:13px;color:var(--text2)">กำลังโหลด...</span></div>
 
     <div id="page-content" style="display:none">
-      <!-- Controls -->
       <div class="controls">
         <div class="sel-wrap">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -314,7 +310,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
         </div>
       </div>
 
-      <!-- Dashboard tab -->
       <div id="tab-dashboard">
         <div class="metrics">
           <div class="metric"><div class="metric-lbl">รายรับ</div><div class="metric-val green" id="m-income">฿0</div></div>
@@ -342,7 +337,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
         </div>
       </div>
 
-      <!-- Credit tab -->
       <div id="tab-credit" style="display:none">
         <div class="bank-grid" id="bank-grid"></div>
         <div class="tcard">
@@ -359,8 +353,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- MODALS -->
-<!-- Transaction form -->
 <div class="overlay" id="txn-overlay">
   <div class="modal">
     <div class="modal-title" id="txn-modal-title">เพิ่มรายการ</div>
@@ -380,7 +372,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- Credit form -->
 <div class="overlay" id="credit-overlay">
   <div class="modal">
     <div class="modal-title" id="credit-modal-title">เพิ่มรายการผ่อน</div>
@@ -420,7 +411,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- New profile modal -->
 <div class="overlay" id="newprofile-overlay">
   <div class="modal">
     <div class="modal-title">เพิ่มโปรไฟล์</div>
@@ -436,7 +426,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- Profile manager modal -->
 <div class="overlay" id="profilemgr-overlay">
   <div class="modal">
     <div class="modal-title">จัดการโปรไฟล์</div>
@@ -447,9 +436,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-
-
-<!-- Admin change password modal -->
 <div class="overlay" id="admin-changepass-overlay">
   <div class="modal">
     <div class="modal-title">🔑 เปลี่ยน Password Admin</div>
@@ -464,7 +450,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- Admin login modal -->
 <div class="overlay" id="admin-login-overlay">
   <div class="modal">
     <div class="modal-title">🔐 Admin Login</div>
@@ -478,7 +463,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- Admin panel screen -->
 <div id="admin-screen" class="screen" style="background:var(--bg)">
   <div class="topbar">
     <div class="tb-logo" style="color:var(--red)">⚙️ Admin Panel</div>
@@ -500,7 +484,6 @@ td{padding:11px 14px;font-size:13px;color:var(--text)}
   </div>
 </div>
 
-<!-- Admin reset PIN modal -->
 <div class="overlay" id="admin-resetpin-overlay">
   <div class="modal">
     <div class="modal-title">Reset PIN</div>
@@ -745,24 +728,72 @@ async function loadData() {
 
 function getMonthData(year, month) {
   const txns = transactions.filter(t => t.year === year && t.month === month);
-  const crs = credits.filter(c => c.year === year && c.month === month);
-  const crAsTxn = crs.map(c => ({ id: 'cr-'+c.id, item: `${c.item} (${c.bank})`, income: 0, outcome: c.amount, isCredit: true, _cr: c }));
+  
+  // ดึงรายการผ่อนที่:
+  // 1. เริ่มต้นก่อนหรือภายในเดือนที่เลือก
+  // 2. และยังอยู่ในระยะเวลาผ่อน (เดือนที่เลือก <= เดือนที่เริ่ม + จำนวนงวดรวม - 1)
+  const crs = credits.filter(c => {
+    const startDate = new Date(c.year, c.month - 1);
+    const targetDate = new Date(year, month - 1);
+    const diffMonths = (targetDate.getFullYear() - startDate.getFullYear()) * 12 + (targetDate.getMonth() - startDate.getMonth());
+    
+    return diffMonths >= 0 && diffMonths < (c.total_installments || 0);
+  });
+
+  const crAsTxn = crs.map(c => {
+    const startDate = new Date(c.year, c.month - 1);
+    const targetDate = new Date(year, month - 1);
+    const currentInstallment = ((targetDate.getFullYear() - startDate.getFullYear()) * 12 + (targetDate.getMonth() - startDate.getMonth())) + 1;
+    
+    return { 
+      id: 'cr-'+c.id, 
+      item: `${c.item} (${c.bank}) [งวด ${currentInstallment}/${c.total_installments}]`, 
+      income: 0, 
+      outcome: c.amount, 
+      isCredit: true, 
+      _cr: c 
+    };
+  });
+  
   return [...txns, ...crAsTxn];
 }
 
 function renderDashboard(year, month) {
+  // 1. คำนวณยอดสะสมยกมา (Balance Forward) จากเดือนก่อนๆ ทั้งหมด
+  let balanceForward = 0;
+  
+  // หาวันที่เก่าที่สุดที่มีธุรกรรม
+  const allDates = [...transactions, ...credits].map(i => new Date(i.year, i.month - 1));
+  if (allDates.length > 0) {
+    const oldestDate = new Date(Math.min(...allDates));
+    const targetDate = new Date(year, month - 1);
+    
+    let tempDate = new Date(oldestDate);
+    while (tempDate < targetDate) {
+      const d = getMonthData(tempDate.getFullYear(), tempDate.getMonth() + 1);
+      balanceForward += d.reduce((s, t) => s + (t.income || 0) - (t.outcome || 0), 0);
+      tempDate.setMonth(tempDate.getMonth() + 1);
+    }
+  }
+
   const data = getMonthData(year, month);
   const income = data.reduce((s,t) => s+(t.income||0), 0);
   const outcome = data.reduce((s,t) => s+(t.outcome||0), 0);
-  const bal = income - outcome;
+  const monthlyBalance = income - outcome;
+  const totalBalance = balanceForward + monthlyBalance;
+
+  // แสดงผล UI
   document.getElementById('m-income').textContent = '฿' + income.toLocaleString();
   document.getElementById('m-outcome').textContent = '฿' + outcome.toLocaleString();
+  
   const mbal = document.getElementById('m-balance');
-  mbal.textContent = '฿' + bal.toLocaleString();
-  mbal.className = 'metric-val ' + (bal >= 0 ? 'green' : 'red');
-  document.getElementById('table-title').textContent = `รายการ ${MONTHS[month-1]} ${year}`;
+  mbal.textContent = '฿' + totalBalance.toLocaleString();
+  mbal.className = 'metric-val ' + (totalBalance >= 0 ? 'green' : 'red');
+  
+  document.getElementById('table-title').innerHTML = `รายการ ${MONTHS[month-1]} ${year} <br> <small style="font-weight:400; color:var(--text2)"> (ยอดยกมา: ฿${balanceForward.toLocaleString()})</small>`;
+  
   renderChart(year, month);
-  renderTxnTable(data);
+  renderTxnTable(data, balanceForward);
 }
 
 function renderChart(year, month) {
@@ -785,11 +816,26 @@ function renderChart(year, month) {
   `).join('');
 }
 
-function renderTxnTable(data) {
+function renderTxnTable(data, balanceForward = 0) {
   const body = document.getElementById('txn-body');
-  if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">ไม่มีข้อมูลในเดือนนี้</td></tr>'; return; }
-  let running = 0;
-  body.innerHTML = data.map(item => {
+  if (!data.length && balanceForward === 0) { 
+    body.innerHTML = '<tr class="empty-row"><td colspan="6">ไม่มีข้อมูลในเดือนนี้</td></tr>'; 
+    return; 
+  }
+
+  let running = balanceForward;
+  let rowsHtml = '';
+
+  // เพิ่มแถวยอดยกมา (ถ้ามี)
+  if (balanceForward !== 0) {
+    rowsHtml += `<tr style="background:var(--surface2)">
+      <td colspan="4" style="font-weight:500">ยอดยกมาจากเดือนก่อน</td>
+      <td class="r mono ${balanceForward >= 0 ? 'green' : 'red'}">฿${balanceForward.toLocaleString()}</td>
+      <td></td>
+    </tr>`;
+  }
+
+  rowsHtml += data.map(item => {
     running += (item.income||0) - (item.outcome||0);
     return `<tr>
       <td>${item.item}${item.source==='line_slip'?` <span class="badge badge-line">LINE</span>`:''}</td>
@@ -798,11 +844,15 @@ function renderTxnTable(data) {
       <td class="r mono">${(item.outcome||0)>0?`<span class="red">฿${item.outcome.toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
       <td class="r mono"><span class="${running>=0?'green':'red'}">฿${running.toLocaleString()}</span></td>
       <td class="c">
-        <button class="act-btn e" onclick="${item.isCredit?`openEditCredit('${item._cr.id}')`:`openEditTxn('${item.id}')`}" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-        <button class="act-btn d" onclick="${item.isCredit?`deleteCreditItem('${item._cr.id}')`:`deleteTxnItem('${item.id}')`}" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+        ${!item.isCredit ? `
+        <button class="act-btn e" onclick="openEditTxn('${item.id}')" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="act-btn d" onclick="deleteTxnItem('${item.id}')" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+        ` : `<span class="muted" style="font-size:10px">จัดการที่แท็บบัตรเครดิต</span>`}
       </td>
     </tr>`;
   }).join('');
+  
+  body.innerHTML = rowsHtml;
 }
 
 function renderCredit() {
