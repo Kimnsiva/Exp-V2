@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<style>
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface2: #f4f4f5;
+  --surface3: #e4e4e7;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.12);
+  --text: #09090b;
+  --text2: #71717a;
+  --text3: #a1a1aa;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --accent: #18181b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --mono: 'DM Mono', monospace;
+}
+[data-theme="dark"] {
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface2: #27272a;
+  --surface3: #3f3f46;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --text: #fafafa;
+  --text2: #a1a1aa;
+  --text3: #52525b;
+  --green: #4ade80;
+  --green-light: #052e16;
+  --red: #f87171;
+  --red-light: #450a0a;
+  --blue: #60a5fa;
+  --blue-light: #1e3a5f;
+  --accent: #fafafa;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:14px}
+body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;overscroll-behavior:none}
+button,input,select{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── LOGIN ── */
+#login-screen{align-items:center;justify-content:center;padding:24px}
+.login-card{width:100%;max-width:360px;text-align:center}
+.login-logo{width:48px;height:48px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:background .2s}
+.login-logo svg{width:22px;height:22px;fill:none;stroke:var(--bg);stroke-width:2}
+.login-title{font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px;letter-spacing:-.4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
+.profile-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.profile-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;transition:all .15s;text-align:left}
+.profile-row:hover{background:var(--surface2);border-color:var(--border2)}
+.profile-row.selected{border-color:var(--accent);background:var(--surface2)}
+.p-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.p-name{font-size:14px;font-weight:500;color:var(--text)}
+.p-arrow{margin-left:auto;color:var(--text3);font-size:16px}
+.btn-new-profile{width:100%;padding:11px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:8px}
+.btn-new-profile:hover{border-color:var(--accent);color:var(--text)}
+
+/* PIN pad */
+.pin-back{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-bottom:24px;cursor:pointer;width:fit-content}
+.pin-back:hover{color:var(--text)}
+.pin-back svg{width:14px;height:14px}
+.pin-title{font-size:18px;font-weight:600;margin-bottom:6px;letter-spacing:-.3px}
+.pin-who{font-size:13px;color:var(--text2);margin-bottom:28px}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border2);background:none;transition:all .2s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-key{height:56px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:18px;font-weight:500;font-family:var(--mono);transition:all .1s}
+.pin-key:hover{background:var(--surface2)}
+.pin-key:active{transform:scale(.96)}
+.pin-key.del{font-size:14px;color:var(--text2)}
+.pin-error{color:var(--red);font-size:12px;margin-top:12px;min-height:18px}
+
+/* ── APP ── */
+#app-screen{flex-direction:column}
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tb-logo{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.3px}
+.tb-user{display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:20px;background:var(--surface2);cursor:pointer;transition:background .15s}
+.tb-user:hover{background:var(--surface3)}
+.tb-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff}
+.tb-uname{font-size:12px;font-weight:500;color:var(--text)}
+.tb-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.icon-btn{width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .15s}
+.icon-btn:hover{background:var(--surface3);color:var(--text)}
+.icon-btn svg{width:15px;height:15px}
+
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;gap:2px;flex-shrink:0}
+.tab{padding:11px 14px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab svg{width:13px;height:13px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
+
+.content{flex:1;padding:16px;max-width:1100px;margin:0 auto;width:100%}
+
+/* controls */
+.controls{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.sel-wrap{display:flex;align-items:center;gap:6px;padding:7px 11px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm)}
+.sel-wrap svg{width:13px;height:13px;color:var(--text3);flex-shrink:0}
+.sel-wrap select{background:none;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;cursor:pointer}
+.ctrl-right{margin-left:auto;display:flex;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:none;transition:all .15s;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-dark{background:var(--accent);color:var(--bg)}
+.btn-dark:hover{opacity:.85}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{opacity:.85}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.metric-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.metric-val{font-size:24px;font-weight:600;letter-spacing:-.5px;font-family:var(--mono)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+
+/* chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.legend{display:flex;gap:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.leg-dot{width:7px;height:7px;border-radius:2px}
+.chart-wrap{display:flex;align-items:flex-end;gap:5px;height:90px}
+.bar-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bars{display:flex;gap:2px;align-items:flex-end;width:100%}
+.bar{border-radius:3px 3px 0 0;min-height:2px;width:50%;transition:opacity .15s}
+.bar:hover{opacity:.7}
+.bar-g{background:var(--green)}
+.bar-r{background:var(--red)}
+.bar-lbl{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+/* table card */
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.tcard-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tcard-title{font-size:13px;font-weight:600;color:var(--text)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;background:var(--surface2);border-bottom:1px solid var(--border)}
+th.r,td.r{text-align:right}
+th.c,td.c{text-align:center}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:11px 14px;font-size:13px;color:var(--text)}
+.mono{font-family:var(--mono);font-size:12px}
+.muted{color:var(--text3)}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.badge-gray{background:var(--surface2);color:var(--text2)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-line{background:#dcfce7;color:#16a34a}
+[data-theme="dark"] .badge-line{background:#052e16;color:#4ade80}
+.act-btn{width:26px;height:26px;border-radius:var(--radius-xs);border:none;background:none;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.act-btn svg{width:13px;height:13px}
+.act-btn.e{color:var(--blue)}.act-btn.e:hover{background:var(--blue-light)}
+.act-btn.d{color:var(--red)}.act-btn.d:hover{background:var(--red-light)}
+.empty-row td{text-align:center;padding:36px;color:var(--text3);font-size:13px}
+
+/* credit bank cards */
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.bank-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.bank-name{font-size:11px;color:var(--text2);margin-bottom:4px}
+.bank-total{font-size:18px;font-weight:600;color:var(--red);font-family:var(--mono);letter-spacing:-.3px}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border2)}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:18px;letter-spacing:-.2px}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fi{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:13px;outline:none;transition:border .15s}
+.fi:focus{border-color:var(--accent)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-acts{display:flex;gap:8px;margin-top:18px}
+.modal-acts .btn{flex:1;justify-content:center}
+.color-row{display:flex;gap:7px;flex-wrap:wrap}
+.color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;transition:transform .15s}
+.color-swatch:hover,.color-swatch.sel{transform:scale(1.15);outline:2px solid var(--accent);outline-offset:2px}
+
+/* profile manager */
+.pm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pm-item:last-child{border-bottom:none}
+.pm-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* saving indicator */
+.saving-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* loader */
+.loader{display:flex;align-items:center;justify-content:center;height:80vh;flex-direction:column;gap:10px}
+.spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .metrics{grid-template-columns:1fr;gap:8px}
+  .ctrl-right .btn span{display:none}
+  .content{padding:12px}
+}
+
+/* admin */
+.btn-admin-login{width:100%;padding:9px;border-radius:var(--radius-sm);border:1.5px solid var(--border2);background:none;color:var(--text3);font-size:12px;margin-top:6px;transition:all .15s}
+.btn-admin-login:hover{border-color:#dc2626;color:#dc2626}
+.admin-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;background:#fee2e2;color:#dc2626;font-size:10px;font-weight:600}
+[data-theme="dark"] .admin-badge{background:#450a0a;color:#f87171}
+.pm-item-admin{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.pm-reset-btn{margin-left:auto;font-size:11px;padding:4px 10px;border-radius:var(--radius-xs);border:1px solid var(--border2);background:none;color:var(--blue);cursor:pointer}
+.pm-reset-btn:hover{background:var(--blue-light)}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+    </div>
+    <div class="login-title">Expense</div>
+    <div class="login-sub">เลือกโปรไฟล์เพื่อเข้าใช้งาน</div>
+
+    <div id="profile-list" class="profile-list"></div>
+    <button class="btn-new-profile" onclick="showNewProfileModal()">+ เพิ่มโปรไฟล์ใหม่</button>
+    <button class="btn-admin-login" onclick="showAdminLogin()">🔐 เข้าสู่ระบบ Admin</button>
+
+    <!-- PIN pad (hidden by default) -->
+    <div id="pin-section" style="display:none">
+      <div class="pin-back" onclick="backToProfiles()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        กลับ
+      </div>
+      <div class="pin-title">ใส่ PIN</div>
+      <div class="pin-who" id="pin-who">โปรไฟล์</div>
+      <div class="pin-dots" id="pin-dots"></div>
+      <div class="pin-pad" id="pin-pad"></div>
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-logo">Expense</div>
+    <div class="tb-user" id="tb-user" onclick="showProfileMgr()">
+      <div class="tb-avatar" id="tb-avatar"></div>
+      <span class="tb-uname" id="tb-uname"></span>
+    </div>
+    <div class="tb-right">
+      <div id="saving-ind" style="display:none"><div class="saving-dot"></div></div>
+      <button class="icon-btn" onclick="toggleTheme()" title="เปลี่ยนธีม">
+        <svg id="theme-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <button class="icon-btn" onclick="logout()" title="ออกจากระบบ">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="tab" data-tab="credit" onclick="switchTab('credit')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      บัตรเครดิต
+    </button>
+  </div>
+
+  <div class="content">
+    <div id="page-loader" class="loader"><div class="spin"></div><span style="font-size:13px;color:var(--text2)">กำลังโหลด...</span></div>
+
+    <div id="page-content" style="display:none">
+      <!-- Controls -->
+      <div class="controls">
+        <div class="sel-wrap">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <select id="sel-year" onchange="loadData()"></select>
+        </div>
+        <div class="sel-wrap">
+          <select id="sel-month" onchange="loadData()"></select>
+        </div>
+        <div class="ctrl-right">
+          <button class="btn btn-dark" onclick="openTxnForm()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span>เพิ่มรายการ</span>
+          </button>
+          <button class="btn btn-blue" onclick="openCreditForm()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>เพิ่มผ่อน</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard tab -->
+      <div id="tab-dashboard">
+        <div class="metrics">
+          <div class="metric"><div class="metric-lbl">รายรับ</div><div class="metric-val green" id="m-income">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">รายจ่าย</div><div class="metric-val red" id="m-outcome">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">คงเหลือ</div><div class="metric-val" id="m-balance">฿0</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-head">
+            <span class="card-title">6 เดือนย้อนหลัง</span>
+            <div class="legend">
+              <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>รายรับ</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>รายจ่าย</div>
+            </div>
+          </div>
+          <div class="chart-wrap" id="chart-bars"></div>
+        </div>
+        <div class="tcard">
+          <div class="tcard-head"><span class="tcard-title" id="table-title">รายการ</span></div>
+          <div class="tscroll">
+            <table>
+              <thead><tr><th>รายการ</th><th>ประเภท</th><th class="r">รายรับ</th><th class="r">รายจ่าย</th><th class="r">คงเหลือ</th><th class="c">จัดการ</th></tr></thead>
+              <tbody id="txn-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit tab -->
+      <div id="tab-credit" style="display:none">
+        <div class="bank-grid" id="bank-grid"></div>
+        <div class="tcard">
+          <div class="tcard-head"><span class="tcard-title">รายการผ่อนทั้งหมด</span></div>
+          <div class="tscroll">
+            <table>
+              <thead><tr><th>เดือน/ปี</th><th>ธนาคาร</th><th>รายการ</th><th class="r">ยอด/เดือน</th><th class="c">จัดการ</th></tr></thead>
+              <tbody id="credit-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Transaction form -->
+<div class="overlay" id="txn-overlay">
+  <div class="modal">
+    <div class="modal-title" id="txn-modal-title">เพิ่มรายการ</div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ปี</label><input class="fi" type="number" id="f-year"></div>
+      <div class="fg"><label class="fl">เดือน</label><select class="fi" id="f-month"></select></div>
+    </div>
+    <div class="fg"><label class="fl">รายการ</label><input class="fi" type="text" id="f-item" placeholder="ชื่อรายการ"></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">รายรับ</label><input class="fi" type="number" id="f-income" placeholder="0" step="0.01"></div>
+      <div class="fg"><label class="fl">รายจ่าย</label><input class="fi" type="number" id="f-outcome" placeholder="0" step="0.01"></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="saveTxn()" id="txn-save-btn">บันทึก</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('txn-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Credit form -->
+<div class="overlay" id="credit-overlay">
+  <div class="modal">
+    <div class="modal-title" id="credit-modal-title">เพิ่มรายการผ่อน</div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ปี</label><input class="fi" type="number" id="cf-year"></div>
+      <div class="fg"><label class="fl">เดือน</label><select class="fi" id="cf-month"></select></div>
+    </div>
+    <div class="fg"><label class="fl">ธนาคาร</label>
+      <select class="fi" id="cf-bank">
+        <option value="">เลือกธนาคาร</option>
+        <option>KTC</option><option>Kbank</option><option>SP</option><option>SCB</option><option>BBL</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">รายการ</label><input class="fi" type="text" id="cf-item" placeholder="ชื่อสินค้า/บริการ"></div>
+    <div class="fg"><label class="fl">ยอด/เดือน</label><input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01"></div>
+    <div class="modal-acts">
+      <button class="btn btn-blue" onclick="saveCredit()" id="credit-save-btn">บันทึก</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('credit-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- New profile modal -->
+<div class="overlay" id="newprofile-overlay">
+  <div class="modal">
+    <div class="modal-title">เพิ่มโปรไฟล์</div>
+    <div class="fg"><label class="fl">ชื่อ</label><input class="fi" type="text" id="np-name" placeholder="เช่น แม่, พ่อ, Uncle Kimn"></div>
+    <div class="fg"><label class="fl">PIN (4-6 หลัก)</label><input class="fi" type="password" id="np-pin" maxlength="6" placeholder="กรอก PIN"></div>
+    <div class="fg"><label class="fl">สี</label>
+      <div class="color-row" id="color-row"></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="saveNewProfile()">สร้างโปรไฟล์</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('newprofile-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile manager modal -->
+<div class="overlay" id="profilemgr-overlay">
+  <div class="modal">
+    <div class="modal-title">จัดการโปรไฟล์</div>
+    <div id="pm-list"></div>
+    <div class="modal-acts" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeOverlay('profilemgr-overlay')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Admin change password modal -->
+<div class="overlay" id="admin-changepass-overlay">
+  <div class="modal">
+    <div class="modal-title">🔑 เปลี่ยน Password Admin</div>
+    <div class="fg"><label class="fl">Password ปัจจุบัน</label><input class="fi" type="password" id="cp-old" placeholder="••••••••"></div>
+    <div class="fg"><label class="fl">Password ใหม่</label><input class="fi" type="password" id="cp-new" placeholder="••••••••"></div>
+    <div class="fg"><label class="fl">ยืนยัน Password ใหม่</label><input class="fi" type="password" id="cp-confirm" placeholder="••••••••"></div>
+    <div id="cp-error" style="color:var(--red);font-size:12px;min-height:16px;margin-top:4px"></div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="confirmChangePass()">บันทึก</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('admin-changepass-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin login modal -->
+<div class="overlay" id="admin-login-overlay">
+  <div class="modal">
+    <div class="modal-title">🔐 Admin Login</div>
+    <div class="fg"><label class="fl">Username</label><input class="fi" type="text" id="adm-user" placeholder="admin"></div>
+    <div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginAdmin()"></div>
+    <div id="adm-error" style="color:var(--red);font-size:12px;min-height:16px;margin-top:4px"></div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="loginAdmin()">เข้าสู่ระบบ</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('admin-login-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin panel screen -->
+<div id="admin-screen" class="screen" style="background:var(--bg)">
+  <div class="topbar">
+    <div class="tb-logo" style="color:var(--red)">⚙️ Admin Panel</div>
+    <div class="tb-right">
+      <span id="adm-who" style="font-size:12px;color:var(--text2)"></span>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="showAdminChangePass()">🔑 เปลี่ยน Password</button>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="logoutAdmin()">ออกจากระบบ</button>
+    </div>
+  </div>
+  <div class="content" style="max-width:600px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:600">จัดการโปรไฟล์ทั้งหมด</div>
+      <button class="btn btn-dark" onclick="admRefresh()">↻ รีเฟรช</button>
+    </div>
+    <div id="adm-profile-list"></div>
+  </div>
+</div>
+
+<!-- Admin reset PIN modal -->
+<div class="overlay" id="admin-resetpin-overlay">
+  <div class="modal">
+    <div class="modal-title">Reset PIN</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">โปรไฟล์: <strong id="rp-name"></strong></div>
+    <div class="fg"><label class="fl">PIN ใหม่ (4-6 หลัก)</label><input class="fi" type="password" id="rp-pin" maxlength="6" placeholder="ใส่ PIN ใหม่"></div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="confirmResetPin()">บันทึก</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('admin-resetpin-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://zgwrpgsklpdtjbpnflxi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AgNZLYmkW82MKfvprNM9Ig_O0J5201q';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const BANKS = ['KTC','Kbank','SP','SCB','BBL'];
+const COLORS = ['#16a34a','#2563eb','#dc2626','#9333ea','#ea580c','#0891b2','#be185d','#4f46e5'];
+
+let profiles = [];
+let currentProfile = null;
+let transactions = [];
+let credits = [];
+let editTxnId = null;
+let editCreditId = null;
+let pinBuffer = '';
+let pinTarget = null;
+let saving = false;
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', async () => {
+  initSelects();
+  initColorSwatches();
+  await loadProfiles();
+  renderProfileList();
+  applyTheme(localStorage.getItem('theme') || 'light');
+});
+
+function initSelects() {
+  const now = new Date();
+  const yr = now.getFullYear();
+  ['sel-year','f-year','cf-year'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'INPUT') { el.value = yr; return; }
+    el.innerHTML = '';
+    for (let y = yr - 2; y <= yr + 1; y++) el.innerHTML += `<option value="${y}"${y===yr?' selected':''}>${y}</option>`;
+  });
+  ['sel-month','f-month','cf-month'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = MONTHS.map((m,i) => `<option value="${i+1}"${i===now.getMonth()?' selected':''}>${m}</option>`).join('');
+  });
+}
+
+function initColorSwatches() {
+  const row = document.getElementById('color-row');
+  row.innerHTML = COLORS.map((c,i) => `<div class="color-swatch${i===0?' sel':''}" style="background:${c}" data-color="${c}" onclick="selectColor(this)"></div>`).join('');
+}
+
+function selectColor(el) {
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── PROFILES ──
+async function loadProfiles() {
+  const stored = localStorage.getItem('profiles');
+  profiles = stored ? JSON.parse(stored) : [];
+}
+
+function saveProfilesLocal() {
+  localStorage.setItem('profiles', JSON.stringify(profiles));
+}
+
+function renderProfileList() {
+  const list = document.getElementById('profile-list');
+  if (profiles.length === 0) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--text3);margin-bottom:12px">ยังไม่มีโปรไฟล์ กรุณาสร้างใหม่</p>';
+    return;
+  }
+  list.innerHTML = profiles.map(p => `
+    <div class="profile-row" onclick="selectProfile('${p.id}')">
+      <div class="p-avatar" style="background:${p.color}">${p.name.slice(0,2).toUpperCase()}</div>
+      <span class="p-name">${p.name}</span>
+      <span class="p-arrow">›</span>
+    </div>
+  `).join('');
+}
+
+function selectProfile(id) {
+  pinTarget = profiles.find(p => p.id === id);
+  if (!pinTarget) return;
+  pinBuffer = '';
+  document.getElementById('pin-who').textContent = pinTarget.name;
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'none';
+  document.getElementById('profile-list').style.display = 'none';
+  document.querySelector('.login-sub').style.display = 'none';
+  document.getElementById('pin-section').style.display = 'block';
+  renderPinDots();
+  renderPinPad();
+}
+
+function backToProfiles() {
+  document.getElementById('pin-section').style.display = 'none';
+  document.getElementById('profile-list').style.display = 'flex';
+  document.querySelector('.login-sub').style.display = 'block';
+  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'block';
+  pinTarget = null; pinBuffer = '';
+}
+
+function renderPinDots() {
+  const len = pinTarget?.pin?.length || 4;
+  document.getElementById('pin-dots').innerHTML = Array.from({length:len},(_,i) => `<div class="pin-dot${i<pinBuffer.length?' filled':''}"></div>`).join('');
+}
+
+function renderPinPad() {
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  document.getElementById('pin-pad').innerHTML = keys.map(k => k === '' ? '<div></div>' : `<button class="pin-key${k==='⌫'?' del':''}" onclick="pinPress('${k}')">${k}</button>`).join('');
+}
+
+function pinPress(key) {
+  if (key === '⌫') { pinBuffer = pinBuffer.slice(0,-1); }
+  else if (pinBuffer.length < (pinTarget?.pin?.length || 6)) { pinBuffer += key; }
+  renderPinDots();
+  if (pinBuffer.length === pinTarget.pin.length) {
+    setTimeout(() => checkPin(), 150);
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === pinTarget.pin) {
+    currentProfile = pinTarget;
+    enterApp();
+  } else {
+    document.getElementById('pin-error').textContent = 'PIN ไม่ถูกต้อง ลองใหม่';
+    document.querySelectorAll('.pin-dot').forEach(d => { d.classList.add('error'); d.classList.remove('filled'); });
+    setTimeout(() => { pinBuffer = ''; renderPinDots(); document.getElementById('pin-error').textContent = ''; }, 800);
+  }
+}
+
+function enterApp() {
+  document.getElementById('login-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  const av = document.getElementById('tb-avatar');
+  av.textContent = currentProfile.name.slice(0,2).toUpperCase();
+  av.style.background = currentProfile.color;
+  document.getElementById('tb-uname').textContent = currentProfile.name;
+  loadData();
+}
+
+function logout() {
+  currentProfile = null;
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+  backToProfiles();
+  renderProfileList();
+}
+
+// ── NEW PROFILE MODAL ──
+function showNewProfileModal() {
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-pin').value = '';
+  initColorSwatches();
+  openOverlay('newprofile-overlay');
+}
+
+async function saveNewProfile() {
+  const name = document.getElementById('np-name').value.trim();
+  const pin = document.getElementById('np-pin').value.trim();
+  if (!name || !pin || pin.length < 4) return alert('กรุณากรอกชื่อและ PIN อย่างน้อย 4 หลัก');
+  const color = document.querySelector('.color-swatch.sel')?.dataset.color || COLORS[0];
+  const p = { id: crypto.randomUUID(), name, pin, color };
+  profiles.push(p);
+  saveProfilesLocal();
+  closeOverlay('newprofile-overlay');
+  renderProfileList();
+}
+
+// ── PROFILE MANAGER ──
+function showProfileMgr() {
+  const list = document.getElementById('pm-list');
+  list.innerHTML = profiles.map(p => `
+    <div class="pm-item">
+      <div class="pm-av" style="background:${p.color}">${p.name.slice(0,2).toUpperCase()}</div>
+      <span style="flex:1;font-size:13px">${p.name}</span>
+      <button class="act-btn d" onclick="deleteProfile('${p.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+    </div>
+  `).join('') || '<p style="font-size:13px;color:var(--text3)">ไม่มีโปรไฟล์</p>';
+  openOverlay('profilemgr-overlay');
+}
+
+function deleteProfile(id) {
+  if (!confirm('ลบโปรไฟล์นี้?')) return;
+  profiles = profiles.filter(p => p.id !== id);
+  saveProfilesLocal();
+  showProfileMgr();
+}
+
+// ── DATA ──
+async function loadData() {
+  document.getElementById('page-loader').style.display = 'flex';
+  document.getElementById('page-content').style.display = 'none';
+  const year = +document.getElementById('sel-year').value;
+  const month = +document.getElementById('sel-month').value;
+  try {
+    const [{ data: txData }, { data: crData }] = await Promise.all([
+      sb.from('transactions').select('*').eq('profile_id', currentProfile.id),
+      sb.from('credit_installments').select('*').eq('profile_id', currentProfile.id)
+    ]);
+    transactions = txData || [];
+    credits = crData || [];
+    renderDashboard(year, month);
+    renderCredit();
+  } catch(e) { alert('โหลดไม่ได้: ' + e.message); }
+  document.getElementById('page-loader').style.display = 'none';
+  document.getElementById('page-content').style.display = 'block';
+}
+
+function getMonthData(year, month) {
+  const txns = transactions.filter(t => t.year === year && t.month === month);
+  const crs = credits.filter(c => c.year === year && c.month === month);
+  const crAsTxn = crs.map(c => ({ id: 'cr-'+c.id, item: `${c.item} (${c.bank})`, income: 0, outcome: c.amount, isCredit: true, _cr: c }));
+  return [...txns, ...crAsTxn];
+}
+
+function renderDashboard(year, month) {
+  const data = getMonthData(year, month);
+  const income = data.reduce((s,t) => s+(t.income||0), 0);
+  const outcome = data.reduce((s,t) => s+(t.outcome||0), 0);
+  const bal = income - outcome;
+  document.getElementById('m-income').textContent = '฿' + income.toLocaleString();
+  document.getElementById('m-outcome').textContent = '฿' + outcome.toLocaleString();
+  const mbal = document.getElementById('m-balance');
+  mbal.textContent = '฿' + bal.toLocaleString();
+  mbal.className = 'metric-val ' + (bal >= 0 ? 'green' : 'red');
+  document.getElementById('table-title').textContent = `รายการ ${MONTHS[month-1]} ${year}`;
+  renderChart(year, month);
+  renderTxnTable(data);
+}
+
+function renderChart(year, month) {
+  const bars = [];
+  for (let i = 5; i >= 0; i--) {
+    let m = month - i, y = year;
+    if (m <= 0) { m += 12; y--; }
+    const data = getMonthData(y, m);
+    bars.push({ lbl: MONTHS[m-1].slice(0,3), income: data.reduce((s,t)=>s+(t.income||0),0), outcome: data.reduce((s,t)=>s+(t.outcome||0),0) });
+  }
+  const maxV = Math.max(...bars.map(b => Math.max(b.income, b.outcome)), 1);
+  document.getElementById('chart-bars').innerHTML = bars.map(b => `
+    <div class="bar-grp">
+      <div class="bars">
+        <div class="bar bar-g" style="height:${Math.max(2,b.income/maxV*80)}px" title="รายรับ ฿${b.income.toLocaleString()}"></div>
+        <div class="bar bar-r" style="height:${Math.max(2,b.outcome/maxV*80)}px" title="รายจ่าย ฿${b.outcome.toLocaleString()}"></div>
+      </div>
+      <div class="bar-lbl">${b.lbl}</div>
+    </div>
+  `).join('');
+}
+
+function renderTxnTable(data) {
+  const body = document.getElementById('txn-body');
+  if (!data.length) { body.innerHTML = '<tr class="empty-row"><td colspan="6">ไม่มีข้อมูลในเดือนนี้</td></tr>'; return; }
+  let running = 0;
+  body.innerHTML = data.map(item => {
+    running += (item.income||0) - (item.outcome||0);
+    return `<tr>
+      <td>${item.item}${item.source==='line_slip'?` <span class="badge badge-line">LINE</span>`:''}</td>
+      <td>${item.isCredit?'<span class="badge badge-blue">บัตรเครดิต</span>':'<span class="badge badge-gray">ทั่วไป</span>'}</td>
+      <td class="r mono">${(item.income||0)>0?`<span class="green">฿${item.income.toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
+      <td class="r mono">${(item.outcome||0)>0?`<span class="red">฿${item.outcome.toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
+      <td class="r mono"><span class="${running>=0?'green':'red'}">฿${running.toLocaleString()}</span></td>
+      <td class="c">
+        <button class="act-btn e" onclick="${item.isCredit?`openEditCredit('${item._cr.id}')`:`openEditTxn('${item.id}')`}" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="act-btn d" onclick="${item.isCredit?`deleteCreditItem('${item._cr.id}')`:`deleteTxnItem('${item.id}')`}" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCredit() {
+  const bankGrid = document.getElementById('bank-grid');
+  const bankTotals = {};
+  credits.forEach(c => { bankTotals[c.bank] = (bankTotals[c.bank]||0) + c.amount; });
+  const cards = BANKS.filter(b => bankTotals[b]).map(b => `<div class="bank-card"><div class="bank-name">${b}</div><div class="bank-total">฿${bankTotals[b].toLocaleString()}</div></div>`).join('');
+  bankGrid.innerHTML = cards || '';
+  const body = document.getElementById('credit-body');
+  if (!credits.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">ไม่มีรายการผ่อน</td></tr>'; return; }
+  body.innerHTML = credits.sort((a,b)=>a.year-b.year||a.month-b.month).map(c => `<tr>
+    <td>${MONTHS[c.month-1]} ${c.year}</td>
+    <td><span class="badge badge-blue">${c.bank}</span></td>
+    <td>${c.item}</td>
+    <td class="r mono red">฿${c.amount.toLocaleString()}</td>
+    <td class="c">
+      <button class="act-btn e" onclick="openEditCredit('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+      <button class="act-btn d" onclick="deleteCreditItem('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+    </td>
+  </tr>`).join('');
+}
+
+// ── TXN CRUD ──
+function openTxnForm() {
+  editTxnId = null;
+  document.getElementById('txn-modal-title').textContent = 'เพิ่มรายการ';
+  document.getElementById('txn-save-btn').textContent = 'บันทึก';
+  const y = +document.getElementById('sel-year').value;
+  const m = +document.getElementById('sel-month').value;
+  document.getElementById('f-year').value = y;
+  document.getElementById('f-month').value = m;
+  document.getElementById('f-item').value = '';
+  document.getElementById('f-income').value = '';
+  document.getElementById('f-outcome').value = '';
+  openOverlay('txn-overlay');
+}
+
+function openEditTxn(id) {
+  const t = transactions.find(t => t.id === id);
+  if (!t) return;
+  editTxnId = id;
+  document.getElementById('txn-modal-title').textContent = 'แก้ไขรายการ';
+  document.getElementById('txn-save-btn').textContent = 'อัปเดต';
+  document.getElementById('f-year').value = t.year;
+  document.getElementById('f-month').value = t.month;
+  document.getElementById('f-item').value = t.item;
+  document.getElementById('f-income').value = t.income || '';
+  document.getElementById('f-outcome').value = t.outcome || '';
+  openOverlay('txn-overlay');
+}
+
+async function saveTxn() {
+  const item = document.getElementById('f-item').value.trim();
+  if (!item) return alert('กรุณากรอกรายการ');
+  const data = { year: +document.getElementById('f-year').value, month: +document.getElementById('f-month').value, item, income: +document.getElementById('f-income').value||0, outcome: +document.getElementById('f-outcome').value||0, profile_id: currentProfile.id };
+  setSaving(true);
+  try {
+    if (editTxnId) {
+      const { error } = await sb.from('transactions').update(data).eq('id', editTxnId);
+      if (error) throw error;
+      transactions = transactions.map(t => t.id === editTxnId ? { ...t, ...data } : t);
+    } else {
+      const { data: d, error } = await sb.from('transactions').insert(data).select().single();
+      if (error) throw error;
+      transactions.push(d);
+    }
+    closeOverlay('txn-overlay');
+    renderDashboard(+document.getElementById('sel-year').value, +document.getElementById('sel-month').value);
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
+
+async function deleteTxnItem(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  setSaving(true);
+  try {
+    const { error } = await sb.from('transactions').delete().eq('id', id);
+    if (error) throw error;
+    transactions = transactions.filter(t => t.id !== id);
+    renderDashboard(+document.getElementById('sel-year').value, +document.getElementById('sel-month').value);
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
+
+// ── CREDIT CRUD ──
+function openCreditForm() {
+  editCreditId = null;
+  document.getElementById('credit-modal-title').textContent = 'เพิ่มรายการผ่อน';
+  document.getElementById('credit-save-btn').textContent = 'บันทึก';
+  document.getElementById('cf-year').value = +document.getElementById('sel-year').value;
+  document.getElementById('cf-month').value = +document.getElementById('sel-month').value;
+  document.getElementById('cf-bank').value = '';
+  document.getElementById('cf-item').value = '';
+  document.getElementById('cf-amount').value = '';
+  openOverlay('credit-overlay');
+}
+
+function openEditCredit(id) {
+  const c = credits.find(c => c.id === id);
+  if (!c) return;
+  editCreditId = id;
+  document.getElementById('credit-modal-title').textContent = 'แก้ไขรายการผ่อน';
+  document.getElementById('credit-save-btn').textContent = 'อัปเดต';
+  document.getElementById('cf-year').value = c.year;
+  document.getElementById('cf-month').value = c.month;
+  document.getElementById('cf-bank').value = c.bank;
+  document.getElementById('cf-item').value = c.item;
+  document.getElementById('cf-amount').value = c.amount;
+  openOverlay('credit-overlay');
+}
+
+async function saveCredit() {
+  const bank = document.getElementById('cf-bank').value;
+  const item = document.getElementById('cf-item').value.trim();
+  const amount = +document.getElementById('cf-amount').value;
+  if (!bank || !item || !amount) return alert('กรุณากรอกให้ครบ');
+  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, amount, profile_id: currentProfile.id };
+  setSaving(true);
+  try {
+    if (editCreditId) {
+      const { error } = await sb.from('credit_installments').update(data).eq('id', editCreditId);
+      if (error) throw error;
+      credits = credits.map(c => c.id === editCreditId ? { ...c, ...data } : c);
+    } else {
+      const { data: d, error } = await sb.from('credit_installments').insert(data).select().single();
+      if (error) throw error;
+      credits.push(d);
+    }
+    closeOverlay('credit-overlay');
+    renderDashboard(+document.getElementById('sel-year').value, +document.getElementById('sel-month').value);
+    renderCredit();
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
+
+async function deleteCreditItem(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  setSaving(true);
+  try {
+    const { error } = await sb.from('credit_installments').delete().eq('id', id);
+    if (error) throw error;
+    credits = credits.filter(c => c.id !== id);
+    renderDashboard(+document.getElementById('sel-year').value, +document.getElementById('sel-month').value);
+    renderCredit();
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
+
+
+// ── ADMIN ──
+let currentAdmin = null;
+let admProfiles = [];
+let resetPinTargetId = null;
+
+
+function showAdminChangePass() {
+  document.getElementById('cp-old').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-confirm').value = '';
+  document.getElementById('cp-error').textContent = '';
+  openOverlay('admin-changepass-overlay');
+}
+
+async function confirmChangePass() {
+  const oldPass = document.getElementById('cp-old').value.trim();
+  const newPass = document.getElementById('cp-new').value.trim();
+  const confirm = document.getElementById('cp-confirm').value.trim();
+  const err = document.getElementById('cp-error');
+  if (!oldPass || !newPass || !confirm) { err.textContent = 'กรุณากรอกให้ครบ'; return; }
+  // verify old password against stored hash
+  const match = await bcrypt.compare(oldPass, currentAdmin.password);
+  if (!match) { err.textContent = 'Password ปัจจุบันไม่ถูกต้อง'; return; }
+  if (newPass.length < 6) { err.textContent = 'Password ใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
+  if (newPass !== confirm) { err.textContent = 'Password ใหม่ไม่ตรงกัน'; return; }
+  try {
+    err.textContent = 'กำลังบันทึก...';
+    // hash new password before saving
+    const hashed = await bcrypt.hash(newPass, 10);
+    const { error } = await sb.from('admins').update({ password: hashed }).eq('id', currentAdmin.id);
+    if (error) throw error;
+    currentAdmin.password = hashed;
+    closeOverlay('admin-changepass-overlay');
+    alert('เปลี่ยน Password สำเร็จแล้ว ✅');
+  } catch(e) { err.textContent = e.message; }
+}
+
+function showAdminLogin() {
+  document.getElementById('adm-user').value = '';
+  document.getElementById('adm-pass').value = '';
+  document.getElementById('adm-error').textContent = '';
+  openOverlay('admin-login-overlay');
+}
+
+async function loginAdmin() {
+  const username = document.getElementById('adm-user').value.trim();
+  const password = document.getElementById('adm-pass').value.trim();
+  if (!username || !password) return;
+  document.getElementById('adm-error').textContent = '';
+  try {
+    // fetch by username only, then verify hash client-side
+    const { data, error } = await sb.from('admins').select('*').eq('username', username).single();
+    if (error || !data) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
+    const match = await bcrypt.compare(password, data.password);
+    if (!match) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
+    currentAdmin = data;
+    closeOverlay('admin-login-overlay');
+    enterAdminPanel();
+  } catch(e) { document.getElementById('adm-error').textContent = e.message; }
+}
+
+function enterAdminPanel() {
+  document.getElementById('login-screen').classList.remove('active');
+  document.getElementById('admin-screen').classList.add('active');
+  document.getElementById('adm-who').textContent = currentAdmin.username;
+  admRefresh();
+}
+
+function logoutAdmin() {
+  currentAdmin = null;
+  document.getElementById('admin-screen').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+}
+
+async function admRefresh() {
+  const list = document.getElementById('adm-profile-list');
+  list.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:16px 0">กำลังโหลด...</div>';
+  // profiles stored in localStorage — load all
+  const allProfiles = JSON.parse(localStorage.getItem('profiles') || '[]');
+  admProfiles = allProfiles;
+  if (!allProfiles.length) { list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:16px 0">ไม่มีโปรไฟล์</div>'; return; }
+  list.innerHTML = allProfiles.map(p => `
+    <div class="pm-item-admin">
+      <div class="pm-av" style="background:${p.color};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${p.name.slice(0,2).toUpperCase()}</div>
+      <div>
+        <div style="font-size:13px;font-weight:500">${p.name}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">id: ${p.id.slice(0,8)}...</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <button class="pm-reset-btn" onclick="showResetPin('${p.id}','${p.name}')">Reset PIN</button>
+        <button class="act-btn d" onclick="admDeleteProfile('${p.id}','${p.name}')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function admDeleteProfile(id, name) {
+  if (!confirm('ลบโปรไฟล์ "' + name + '" และข้อมูลทั้งหมด?')) return;
+  let all = JSON.parse(localStorage.getItem('profiles') || '[]');
+  all = all.filter(p => p.id !== id);
+  localStorage.setItem('profiles', JSON.stringify(all));
+  // also delete from supabase
+  sb.from('transactions').delete().eq('profile_id', id);
+  sb.from('credit_installments').delete().eq('profile_id', id);
+  admRefresh();
+}
+
+function showResetPin(id, name) {
+  resetPinTargetId = id;
+  document.getElementById('rp-name').textContent = name;
+  document.getElementById('rp-pin').value = '';
+  openOverlay('admin-resetpin-overlay');
+}
+
+function confirmResetPin() {
+  const newPin = document.getElementById('rp-pin').value.trim();
+  if (!newPin || newPin.length < 4) return alert('PIN ต้องมีอย่างน้อย 4 หลัก');
+  let all = JSON.parse(localStorage.getItem('profiles') || '[]');
+  all = all.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
+  localStorage.setItem('profiles', JSON.stringify(all));
+  closeOverlay('admin-resetpin-overlay');
+  alert('Reset PIN สำเร็จแล้ว');
+  admRefresh();
+}
+
+// ── UI HELPERS ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tab-credit').style.display = tab === 'credit' ? 'block' : 'none';
+}
+
+function openOverlay(id) { document.getElementById(id).classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+function setSaving(v) {
+  saving = v;
+  document.getElementById('saving-ind').style.display = v ? 'flex' : 'none';
+}
+
+function toggleTheme() {
+  const cur = document.body.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+function applyTheme(t) {
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  const icon = document.getElementById('theme-icon');
+  icon.innerHTML = t === 'dark'
+    ? '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
+    : '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+}
+</script>
+</body>
+</html>
