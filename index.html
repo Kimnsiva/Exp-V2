@@ -1034,6 +1034,7 @@ async function admRefresh() {
       </div>
     </div>
   `).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--red);font-size:13px">' + e.message + '</div>'; }
 }
 
 function admDeleteProfile(id, name) {
