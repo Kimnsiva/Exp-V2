@@ -2,278 +2,240 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Expense Tracker</title>
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#F5F5F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
 <style>
 :root {
-  /* ── Ultra Minimalist (Apple / Linear Vibe) Light Theme ── */
-  --bg: #F5F5F7;
-  --surface: #FFFFFF;
-  --surface2: #F5F5F7;
-  --surface3: #E5E5EA;
-  --border: #E5E5EA;
-  --border2: #D1D1D6;
-  --text: #1D1D1F; 
-  --text2: #86868B; 
-  --text3: #AEAEB2;
-  --primary: #1D1D1F;
-  --primary-light: #E5E5EA;
-  --green: #34C759; 
-  --green-light: #E8F8F0;
-  --red: #FF3B30; 
-  --red-light: #FFEBEA;
-  --blue: #007AFF;
-  --blue-light: #E5F1FF;
-  --accent: #1D1D1F;
-  --radius: 16px;
-  --radius-sm: 12px;
-  --radius-xs: 8px;
-  --shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.02);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --mono: 'Inter', ui-monospace, SFMono-Regular, monospace;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface2: #f4f4f5;
+  --surface3: #e4e4e7;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.12);
+  --text: #09090b;
+  --text2: #71717a;
+  --text3: #a1a1aa;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --accent: #18181b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --mono: 'DM Mono', monospace;
 }
-
 [data-theme="dark"] {
-  /* ── Ultra Minimalist Dark Theme ── */
-  --bg: #000000; 
-  --surface: #1C1C1E; 
-  --surface2: #2C2C2E;
-  --surface3: #3A3A3C;
-  --border: #38383A;
-  --border2: #48484A;
-  --text: #F5F5F7;
-  --text2: #86868B;
-  --text3: #636366;
-  --primary: #FFFFFF; 
-  --primary-light: #3A3A3C;
-  --green: #30D158; 
-  --green-light: #0A2F17;
-  --red: #FF453A; 
-  --red-light: #3A0A0A;
-  --blue: #0A84FF;
-  --blue-light: #052244;
-  --accent: #FFFFFF;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.15);
-  --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface2: #27272a;
+  --surface3: #3f3f46;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --text: #fafafa;
+  --text2: #a1a1aa;
+  --text3: #52525b;
+  --green: #4ade80;
+  --green-light: #052e16;
+  --red: #f87171;
+  --red-light: #450a0a;
+  --blue: #60a5fa;
+  --blue-light: #1e3a5f;
+  --accent: #fafafa;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { font-size: 14px; }
-body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s ease, color 0.3s ease; overscroll-behavior: none; -webkit-font-smoothing: antialiased; }
-button, input, select { font-family: inherit; font-size: inherit; }
-button { cursor: pointer; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:14px}
+body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;overscroll-behavior:none}
+button,input,select{font-family:inherit;font-size:inherit}
+button{cursor:pointer}
 
 /* ── SCREENS ── */
-.screen { display: none; min-height: 100vh; }
-.screen.active { display: flex; flex-direction: column; }
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
 
 /* ── LOGIN ── */
-#login-screen { align-items: center; justify-content: center; padding: 24px; }
-.login-card { width: 100%; max-width: 360px; text-align: center; background: var(--surface); padding: 40px 32px; border-radius: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.login-logo { width: 56px; height: 56px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: var(--shadow-sm); transition: transform .2s; }
-.login-logo svg { width: 24px; height: 24px; fill: none; stroke: var(--bg); stroke-width: 2.5; }
-.login-title { font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: -0.5px; }
-.login-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; font-weight: 500; }
-.profile-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
-.profile-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--surface2); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; text-align: left; border: 1px solid var(--border); }
-.profile-row:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); background: var(--surface); border-color: var(--primary); }
-.p-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; flex-shrink: 0; }
-.p-name { font-size: 15px; font-weight: 500; color: var(--text); }
-.p-arrow { margin-left: auto; color: var(--text3); font-size: 16px; font-weight: 600; }
-.btn-new-profile { width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border2); background: none; color: var(--text2); font-size: 14px; font-weight: 500; transition: all .2s; margin-bottom: 8px; }
-.btn-new-profile:hover { background: var(--surface2); color: var(--primary); border-color: var(--primary); }
+#login-screen{align-items:center;justify-content:center;padding:24px}
+.login-card{width:100%;max-width:360px;text-align:center}
+.login-logo{width:48px;height:48px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;transition:background .2s}
+.login-logo svg{width:22px;height:22px;fill:none;stroke:var(--bg);stroke-width:2}
+.login-title{font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px;letter-spacing:-.4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
+.profile-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.profile-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;transition:all .15s;text-align:left}
+.profile-row:hover{background:var(--surface2);border-color:var(--border2)}
+.profile-row.selected{border-color:var(--accent);background:var(--surface2)}
+.p-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.p-name{font-size:14px;font-weight:500;color:var(--text)}
+.p-arrow{margin-left:auto;color:var(--text3);font-size:16px}
+.btn-new-profile{width:100%;padding:11px;border-radius:var(--radius-sm);border:1.5px dashed var(--border2);background:none;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:8px}
+.btn-new-profile:hover{border-color:var(--accent);color:var(--text)}
 
 /* PIN pad */
-.pin-back { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text2); margin-bottom: 24px; cursor: pointer; width: fit-content; font-weight: 500; transition: color .2s; }
-.pin-back:hover { color: var(--primary); }
-.pin-back svg { width: 16px; height: 16px; }
-.pin-title { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 6px; letter-spacing: -0.5px; }
-.pin-who { font-size: 14px; color: var(--text2); margin-bottom: 32px; font-weight: 500; }
-.pin-dots { display: flex; gap: 14px; justify-content: center; margin-bottom: 32px; }
-.pin-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; transition: all 0.2s; }
-.pin-dot.filled { background: var(--primary); border-color: var(--primary); transform: scale(1.1); }
-.pin-dot.error { background: var(--red); border-color: var(--red); animation: shake 0.4s; }
-@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 260px; margin: 0 auto; }
-.pin-key { height: 60px; border-radius: 12px; border: none; background: var(--surface2); color: var(--accent); font-size: 22px; font-weight: 500; transition: all 0.1s; }
-.pin-key:hover { background: var(--surface); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-.pin-key:active { transform: scale(0.95); background: var(--border); }
-.pin-key.del { font-size: 16px; color: var(--text2); }
-.pin-error { color: var(--red); font-size: 13px; margin-top: 16px; min-height: 18px; font-weight: 500; }
+.pin-back{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-bottom:24px;cursor:pointer;width:fit-content}
+.pin-back:hover{color:var(--text)}
+.pin-back svg{width:14px;height:14px}
+.pin-title{font-size:18px;font-weight:600;margin-bottom:6px;letter-spacing:-.3px}
+.pin-who{font-size:13px;color:var(--text2);margin-bottom:28px}
+.pin-dots{display:flex;gap:14px;justify-content:center;margin-bottom:32px}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--border2);background:none;transition:all .2s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-dot.error{background:var(--red);border-color:var(--red)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-key{height:56px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:18px;font-weight:500;font-family:var(--mono);transition:all .1s}
+.pin-key:hover{background:var(--surface2)}
+.pin-key:active{transform:scale(.96)}
+.pin-key.del{font-size:14px;color:var(--text2)}
+.pin-error{color:var(--red);font-size:12px;margin-top:12px;min-height:18px}
 
 /* ── APP ── */
-#app-screen { flex-direction: column; }
-.topbar { height: 60px; background: rgba(255, 255, 255, 0.75); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
-[data-theme="dark"] .topbar { background: rgba(28, 28, 30, 0.75); }
-.tb-logo { font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
-.tb-user { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 16px; background: var(--surface2); cursor: pointer; transition: all .2s; border: 1px solid transparent; }
-.tb-user:hover { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-sm); }
-.tb-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
-.tb-uname { font-size: 13px; font-weight: 600; color: var(--text); }
-.tb-right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
-.icon-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--surface2); display: flex; align-items: center; justify-content: center; color: var(--text2); transition: all .2s; }
-.icon-btn:hover { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-.icon-btn svg { width: 16px; height: 16px; }
+#app-screen{flex-direction:column}
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tb-logo{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.3px}
+.tb-user{display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:20px;background:var(--surface2);cursor:pointer;transition:background .15s}
+.tb-user:hover{background:var(--surface3)}
+.tb-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff}
+.tb-uname{font-size:12px;font-weight:500;color:var(--text)}
+.tb-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.icon-btn{width:32px;height:32px;border-radius:var(--radius-xs);border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .15s}
+.icon-btn:hover{background:var(--surface3);color:var(--text)}
+.icon-btn svg{width:15px;height:15px}
 
-.tab-bar { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; gap: 20px; flex-shrink: 0; }
-.tab { padding: 14px 4px; font-size: 14px; font-weight: 500; color: var(--text3); border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; display: flex; align-items: center; gap: 8px; }
-.tab svg { width: 15px; height: 15px; }
-.tab:hover { color: var(--text); }
-.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;gap:2px;flex-shrink:0}
+.tab{padding:11px 14px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tab svg{width:13px;height:13px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent)}
 
-.content { flex: 1; padding: 20px; max-width: 1100px; margin: 0 auto; width: 100%; }
-.controls { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.sel-wrap { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface); border-radius: var(--radius-xs); box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: all .2s; }
-.sel-wrap:hover { border-color: var(--primary-light); box-shadow: var(--shadow); }
-.sel-wrap svg { width: 14px; height: 14px; color: var(--text2); flex-shrink: 0; }
-.sel-wrap select { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; outline: none; cursor: pointer; -webkit-appearance: none; }
-.ctrl-right { margin-left: auto; display: flex; gap: 10px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; transition: all 0.2s; white-space: nowrap; cursor: pointer; }
-.btn svg { width: 14px; height: 14px; }
-.btn:active { transform: scale(0.96); }
-.btn-dark { background: var(--primary); color: var(--bg); }
-.btn-dark:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.btn-blue { background: var(--blue); color: #FFF; }
-.btn-blue:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid transparent; }
-.btn-ghost:hover { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-sm); }
+.content{flex:1;padding:16px;max-width:1100px;margin:0 auto;width:100%}
 
-.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
-.metric { background: var(--surface); border-radius: var(--radius-sm); padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--border); transition: transform .2s, box-shadow .2s; }
-.metric:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
-.metric-lbl { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.metric-val { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; font-family: var(--mono); color: var(--accent); }
-.green { color: var(--green); }
-.red { color: var(--red); }
+/* controls */
+.controls{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.sel-wrap{display:flex;align-items:center;gap:6px;padding:7px 11px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm)}
+.sel-wrap svg{width:13px;height:13px;color:var(--text3);flex-shrink:0}
+.sel-wrap select{background:none;border:none;color:var(--text);font-size:13px;font-weight:500;outline:none;cursor:pointer}
+.ctrl-right{margin-left:auto;display:flex;gap:6px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:none;transition:all .15s;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-dark{background:var(--accent);color:var(--bg)}
+.btn-dark:hover{opacity:.85}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{opacity:.85}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
 
-.chart-card { background: var(--surface); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.card-title { font-size: 15px; font-weight: 600; color: var(--accent); letter-spacing: -0.3px; }
-.legend { display: flex; gap: 16px; }
-.leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); font-weight: 500; }
-.leg-dot { width: 8px; height: 8px; border-radius: 50%; }
-.chart-wrap { display: flex; align-items: flex-end; gap: 12px; height: 120px; padding-bottom: 4px; }
-.bar-grp { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.bars { display: flex; gap: 4px; align-items: flex-end; width: 100%; justify-content: center; }
-.bar { border-radius: 4px; min-height: 4px; width: 35%; max-width: 12px; transition: height 0.5s, opacity 0.2s; }
-.bar:hover { opacity: 0.8; }
-.bar-g { background: linear-gradient(180deg, var(--green) 0%, rgba(52, 199, 89, 0.2) 100%); }
-.bar-r { background: linear-gradient(180deg, var(--red) 0%, rgba(255, 59, 48, 0.2) 100%); }
-[data-theme="dark"] .bar-g { background: linear-gradient(180deg, var(--green) 0%, rgba(48, 209, 88, 0.2) 100%); }
-[data-theme="dark"] .bar-r { background: linear-gradient(180deg, var(--red) 0%, rgba(255, 69, 58, 0.2) 100%); }
-.bar-lbl { font-size: 11px; color: var(--text3); font-weight: 500; }
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.metric-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.metric-val{font-size:24px;font-weight:600;letter-spacing:-.5px;font-family:var(--mono)}
+.green{color:var(--green)}
+.red{color:var(--red)}
 
-.tcard { background: var(--surface); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.tcard-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.tcard-title { font-size: 15px; font-weight: 600; color: var(--accent); letter-spacing: -0.3px; }
-.tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-thead th { padding: 12px 20px; text-align: left; font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; background: var(--surface2); border-bottom: 1px solid var(--border); }
-th.r, td.r { text-align: right; }
-th.c, td.c { text-align: center; }
-tbody tr { border-bottom: 1px solid var(--border); transition: background .2s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--surface2); }
-td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; }
-.mono { font-family: var(--mono); font-size: 13px; letter-spacing: -0.5px; font-weight: 500; }
-.muted { color: var(--text3); font-weight: 400; }
-.badge { display: inline-flex; align-items: center; padding: 4px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
-.badge-gray { background: var(--surface3); color: var(--text2); }
-.badge-blue { background: var(--blue-light); color: var(--blue); }
-.badge-line { background: var(--green-light); color: var(--green); }
-.act-btn { width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; transition: all .2s; }
-.act-btn svg { width: 14px; height: 14px; }
-.act-btn.e { color: var(--text2); }
-.act-btn.e:hover { background: var(--surface3); color: var(--text); transform: scale(1.05); }
-.act-btn.d { color: var(--red); }
-.act-btn.d:hover { background: var(--red-light); transform: scale(1.05); }
-.empty-row td { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; font-weight: 500; }
+/* chart */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.legend{display:flex;gap:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.leg-dot{width:7px;height:7px;border-radius:2px}
+.chart-wrap{display:flex;align-items:flex-end;gap:5px;height:90px}
+.bar-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bars{display:flex;gap:2px;align-items:flex-end;width:100%}
+.bar{border-radius:3px 3px 0 0;min-height:2px;width:50%;transition:opacity .15s}
+.bar:hover{opacity:.7}
+.bar-g{background:var(--green)}
+.bar-r{background:var(--red)}
+.bar-lbl{font-size:9px;color:var(--text3);font-family:var(--mono)}
 
-.bank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
-.bank-card { background: linear-gradient(135deg, #2C2C2E 0%, #1C1C1E 100%); color: #FFFFFF; border-radius: 12px; padding: 20px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; cursor: pointer; }
-[data-theme="dark"] .bank-card { background: linear-gradient(135deg, #3A3A3C 0%, #2C2C2E 100%); }
-.bank-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); }
-.bank-card::after { content: ''; position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none; }
-.bank-name { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-.bank-total { font-size: 20px; font-weight: 700; color: #FFF; font-family: var(--mono); letter-spacing: -0.5px; }
+/* table card */
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.tcard-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tcard-title{font-size:13px;font-weight:600;color:var(--text)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;background:var(--surface2);border-bottom:1px solid var(--border)}
+th.r,td.r{text-align:right}
+th.c,td.c{text-align:center}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+td{padding:11px 14px;font-size:13px;color:var(--text)}
+.mono{font-family:var(--mono);font-size:12px}
+.muted{color:var(--text3)}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.badge-gray{background:var(--surface2);color:var(--text2)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-line{background:#dcfce7;color:#16a34a}
+[data-theme="dark"] .badge-line{background:#052e16;color:#4ade80}
+.act-btn{width:26px;height:26px;border-radius:var(--radius-xs);border:none;background:none;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.act-btn svg{width:13px;height:13px}
+.act-btn.e{color:var(--blue)}.act-btn.e:hover{background:var(--blue-light)}
+.act-btn.d{color:var(--red)}.act-btn.d:hover{background:var(--red-light)}
+.empty-row td{text-align:center;padding:36px;color:var(--text3);font-size:13px}
+
+/* credit bank cards */
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.bank-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.bank-name{font-size:11px;color:var(--text2);margin-bottom:4px}
+.bank-total{font-size:18px;font-weight:600;color:var(--red);font-family:var(--mono);letter-spacing:-.3px}
 
 /* modal */
-.overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; opacity: 0; transition: opacity 0.3s; }
-.overlay.open { display: flex; opacity: 1; }
-.modal { background: var(--surface); border-radius: 16px; padding: 28px; width: 100%; max-width: 400px; box-shadow: 0 16px 32px rgba(0,0,0,0.1); transform: translateY(16px) scale(0.95); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); border: 1px solid var(--border); }
-.overlay.open .modal { transform: translateY(0) scale(1); }
-.modal-title { font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 20px; letter-spacing: -0.3px; }
-.fg { margin-bottom: 14px; }
-.fl { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.fi { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface2); color: var(--text); font-size: 13px; outline: none; transition: all 0.2s; }
-.fi:focus { border-color: var(--text3); background: var(--surface); box-shadow: 0 0 0 2px var(--surface3); }
-.fg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.modal-acts { display: flex; gap: 10px; margin-top: 24px; }
-.modal-acts .btn { flex: 1; justify-content: center; padding: 10px; font-size: 13px; }
-.color-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: transform .2s; }
-.color-swatch:hover, .color-swatch.sel { transform: scale(1.15); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--primary); }
-.pm-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.pm-item:last-child { border-bottom: none; }
-.pm-av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
-.saving-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text); animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
-.loader { display: flex; align-items: center; justify-content: center; height: 80vh; flex-direction: column; gap: 12px; }
-.spin { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;padding:22px;width:100%;max-width:400px;border:1px solid var(--border2)}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:18px;letter-spacing:-.2px}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.fi{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:13px;outline:none;transition:border .15s}
+.fi:focus{border-color:var(--accent)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-acts{display:flex;gap:8px;margin-top:18px}
+.modal-acts .btn{flex:1;justify-content:center}
+.color-row{display:flex;gap:7px;flex-wrap:wrap}
+.color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;transition:transform .15s}
+.color-swatch:hover,.color-swatch.sel{transform:scale(1.15);outline:2px solid var(--accent);outline-offset:2px}
 
-/* admin */
-.btn-admin-login { width: 100%; padding: 12px; border-radius: var(--radius-xs); border: none; background: none; color: var(--text3); font-size: 12px; font-weight: 500; margin-top: 10px; transition: all .2s; }
-.btn-admin-login:hover { color: var(--primary); background: var(--surface2); }
-.admin-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; background: var(--red-light); color: var(--red); font-size: 10px; font-weight: 600; }
-.pm-item-admin { background: var(--surface2); border-radius: var(--radius-xs); padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); }
-.pm-reset-btn { margin-left: auto; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border2); background: var(--surface); color: var(--text); cursor: pointer; transition: all .2s; }
-.pm-reset-btn:hover { background: var(--surface2); }
+/* profile manager */
+.pm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pm-item:last-child{border-bottom:none}
+.pm-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
 
-/* ── Mobile Responsive (Fit Table to Screen) ── */
-@media(max-width: 600px) {
-  .metrics { grid-template-columns: 1fr; gap: 12px; }
-  .ctrl-right .btn span { display: none; }
-  .content { padding: 12px 10px; }
-  .tcard-head { padding: 14px 12px; }
-  .tscroll { overflow-x: auto; padding: 0; }
-  table { min-width: 100%; border-collapse: collapse; }
-  thead th { padding: 10px 8px; font-size: 10px; }
-  td { padding: 10px 8px; font-size: 12px; }
-  .mono { font-size: 11px; letter-spacing: -0.5px; white-space: nowrap; }
-  .badge { padding: 2px 4px; font-size: 9px; }
-  .act-btn { width: 26px; height: 26px; border-radius: 4px; }
-  .act-btn svg { width: 14px; height: 14px; }
-  td:first-child { max-width: 110px; white-space: normal; word-break: break-word; line-height: 1.3; }
+/* saving indicator */
+.saving-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* loader */
+.loader{display:flex;align-items:center;justify-content:center;height:80vh;flex-direction:column;gap:10px}
+.spin{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .metrics{grid-template-columns:1fr;gap:8px}
+  .ctrl-right .btn span{display:none}
+  .content{padding:12px}
 }
 </style>
 </head>
 <body data-theme="light">
 
+<!-- LOGIN SCREEN -->
 <div id="login-screen" class="screen active">
   <div class="login-card">
     <div class="login-logo">
       <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
     </div>
-    <div class="login-title">Expense Tracker</div>
+    <div class="login-title">Expense</div>
     <div class="login-sub">เลือกโปรไฟล์เพื่อเข้าใช้งาน</div>
 
     <div id="profile-list" class="profile-list"></div>
-    <button class="btn-admin-login" onclick="showAdminLogin()">🔐 เข้าสู่ระบบ Admin</button>
+    <button class="btn-new-profile" onclick="showNewProfileModal()">+ เพิ่มโปรไฟล์ใหม่</button>
 
+    <!-- PIN pad (hidden by default) -->
     <div id="pin-section" style="display:none">
       <div class="pin-back" onclick="backToProfiles()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -288,6 +250,7 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
+<!-- APP SCREEN -->
 <div id="app-screen" class="screen">
   <div class="topbar">
     <div class="tb-logo">Expense</div>
@@ -297,11 +260,6 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
     </div>
     <div class="tb-right">
       <div id="saving-ind" style="display:none"><div class="saving-dot"></div></div>
-      
-      <button class="icon-btn" onclick="showUserChangePin()" title="เปลี่ยน PIN">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-3.956l8.257-8.257A6 6 0 1115 7h.01z"/></svg>
-      </button>
-
       <button class="icon-btn" onclick="toggleTheme()" title="เปลี่ยนธีม">
         <svg id="theme-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
       </button>
@@ -320,12 +278,17 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
       บัตรเครดิต
     </button>
+    <button class="tab" data-tab="pvd" onclick="switchTab('pvd')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      PVD
+    </button>
   </div>
 
   <div class="content">
     <div id="page-loader" class="loader"><div class="spin"></div><span style="font-size:13px;color:var(--text2)">กำลังโหลด...</span></div>
 
     <div id="page-content" style="display:none">
+      <!-- Controls -->
       <div class="controls">
         <div class="sel-wrap">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -346,11 +309,13 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
         </div>
       </div>
 
+      <!-- Dashboard tab -->
       <div id="tab-dashboard">
         <div class="metrics">
-          <div class="metric"><div class="metric-lbl">รายรับ</div><div class="metric-val green" id="m-income">฿0</div></div>
-          <div class="metric"><div class="metric-lbl">รายจ่าย</div><div class="metric-val red" id="m-outcome">฿0</div></div>
-          <div class="metric"><div class="metric-lbl">คงเหลือ</div><div class="metric-val" id="m-balance">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">ยกยอดจากเดือนก่อน</div><div class="metric-val" id="m-carry" style="font-size:16px">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">รายรับเดือนนี้</div><div class="metric-val green" id="m-income">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">รายจ่ายเดือนนี้</div><div class="metric-val red" id="m-outcome">฿0</div></div>
+          <div class="metric" style="grid-column:1/-1"><div class="metric-lbl">คงเหลือสุทธิ (รวมยกยอด)</div><div class="metric-val" id="m-balance">฿0</div></div>
         </div>
         <div class="chart-card">
           <div class="card-head">
@@ -373,14 +338,74 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
         </div>
       </div>
 
+      <!-- Credit tab -->
       <div id="tab-credit" style="display:none">
         <div class="bank-grid" id="bank-grid"></div>
         <div class="tcard">
           <div class="tcard-head"><span class="tcard-title">รายการผ่อนทั้งหมด</span></div>
           <div class="tscroll">
             <table>
-              <thead><tr><th>เดือน/ปี</th><th>ธนาคาร</th><th>รายการ</th><th class="r">ยอด/เดือน</th><th class="r">ดอกเบี้ย</th><th class="c">งวด</th><th class="c">จัดการ</th></tr></thead>
+              <thead><tr><th>เดือน/ปี</th><th>ธนาคาร</th><th>รายการ</th><th class="r">ยอด/เดือน</th><th class="c">จัดการ</th></tr></thead>
               <tbody id="credit-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PVD tab -->
+      <div id="tab-pvd" style="display:none">
+        <!-- Settings card -->
+        <div class="tcard" style="margin-bottom:12px">
+          <div class="tcard-head"><span class="tcard-title">ตั้งค่า PVD</span></div>
+          <div style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+            <div class="fg" style="margin:0;flex:1;min-width:140px">
+              <label class="fl">เงินก้อนตั้งต้น (฿)</label>
+              <input class="fi" type="number" id="pvd-seed" placeholder="0" step="0.01" oninput="savePvdSettings()">
+            </div>
+            <div class="fg" style="margin:0;flex:1;min-width:120px">
+              <label class="fl">% พนักงาน (default)</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input class="fi" type="number" id="pvd-emp-pct" placeholder="5" step="0.5" min="0" max="15" style="flex:1" oninput="savePvdSettings()">
+                <span style="font-size:13px;color:var(--text2)">%</span>
+              </div>
+            </div>
+            <div class="fg" style="margin:0;flex:1;min-width:260px">
+              <label class="fl" style="color:var(--text3)">หมายเหตุ: % นายจ้างกรอกแยกแต่ละเดือน</label>
+              <div style="font-size:12px;color:var(--text3);padding:9px 0">ยืดหยุ่นได้ตามสัญญาจ้างแต่ละช่วง</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary metrics -->
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+          <div class="metric"><div class="metric-lbl">ก้อนตั้งต้น</div><div class="metric-val" id="pvd-m-seed" style="font-size:18px">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">สะสมจากเงินเดือน</div><div class="metric-val green" id="pvd-m-monthly">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">รวมทั้งหมด</div><div class="metric-val" id="pvd-total" style="font-size:20px;font-weight:700">฿0</div></div>
+          <div class="metric"><div class="metric-lbl">จำนวนเดือน</div><div class="metric-val" id="pvd-months">0</div></div>
+        </div>
+
+        <!-- Table -->
+        <div class="tcard">
+          <div class="tcard-head">
+            <span class="tcard-title">ประวัติเงินสมทบ PVD รายเดือน</span>
+            <button class="btn btn-dark" onclick="openPvdForm()" style="padding:5px 12px;font-size:12px">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg>
+              บันทึกเดือนนี้
+            </button>
+          </div>
+          <div class="tscroll">
+            <table>
+              <thead><tr>
+                <th>เดือน/ปี</th>
+                <th class="r">เงินเดือน</th>
+                <th class="r">% พนักงาน</th>
+                <th class="r">฿ พนักงาน</th>
+                <th class="r">% นายจ้าง</th>
+                <th class="r">฿ นายจ้าง</th>
+                <th class="r">รวมเดือนนี้</th>
+                <th class="c">จัดการ</th>
+              </tr></thead>
+              <tbody id="pvd-body"></tbody>
             </table>
           </div>
         </div>
@@ -389,6 +414,8 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
+<!-- MODALS -->
+<!-- Transaction form -->
 <div class="overlay" id="txn-overlay">
   <div class="modal">
     <div class="modal-title" id="txn-modal-title">เพิ่มรายการ</div>
@@ -408,6 +435,7 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
+<!-- Credit form -->
 <div class="overlay" id="credit-overlay">
   <div class="modal">
     <div class="modal-title" id="credit-modal-title">เพิ่มรายการผ่อน</div>
@@ -422,21 +450,7 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
       </select>
     </div>
     <div class="fg"><label class="fl">รายการ</label><input class="fi" type="text" id="cf-item" placeholder="ชื่อสินค้า/บริการ"></div>
-    <div class="fg2">
-      <div class="fg"><label class="fl">ยอดเต็ม (฿)</label><input class="fi" type="number" id="cf-principal" placeholder="0" step="0.01" oninput="calcMonthlyPayment()"></div>
-      <div class="fg"><label class="fl">ดอกเบี้ย (%)</label><input class="fi" type="number" id="cf-interest-rate" placeholder="0" step="0.01" value="0" oninput="calcMonthlyPayment()"></div>
-    </div>
-    <div class="fg"><label class="fl">งวดรวมทั้งหมด</label><input class="fi" type="number" id="cf-total-installments" placeholder="0" min="1" oninput="calcMonthlyPayment()"></div>
-    <div class="fg2">
-      <div class="fg">
-        <label class="fl">ยอด/เดือน (คำนวณอัตโนมัติ)</label>
-        <input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01" style="background:var(--surface3);color:var(--text2)" readonly>
-      </div>
-      <div class="fg">
-        <label class="fl">ดอกเบี้ย/เดือน (฿)</label>
-        <input class="fi" type="number" id="cf-interest" placeholder="0" step="0.01" style="background:var(--surface3);color:var(--text2)" readonly>
-      </div>
-    </div>
+    <div class="fg"><label class="fl">ยอด/เดือน</label><input class="fi" type="number" id="cf-amount" placeholder="0" step="0.01"></div>
     <div class="modal-acts">
       <button class="btn btn-blue" onclick="saveCredit()" id="credit-save-btn">บันทึก</button>
       <button class="btn btn-ghost" onclick="closeOverlay('credit-overlay')">ยกเลิก</button>
@@ -444,6 +458,7 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
+<!-- New profile modal -->
 <div class="overlay" id="newprofile-overlay">
   <div class="modal">
     <div class="modal-title">เพิ่มโปรไฟล์</div>
@@ -459,6 +474,48 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
+<!-- PVD form -->
+<div class="overlay" id="pvd-overlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="pvd-modal-title">บันทึกเงินสมทบ PVD</div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">ปี</label><input class="fi" type="number" id="pf-year"></div>
+      <div class="fg"><label class="fl">เดือน</label><select class="fi" id="pf-month"></select></div>
+    </div>
+    <div class="fg">
+      <label class="fl">เงินเดือน (฿)</label>
+      <input class="fi" type="number" id="pf-salary" placeholder="0" step="0.01" oninput="calcPvdPreview()">
+    </div>
+    <div class="fg2">
+      <div class="fg">
+        <label class="fl">% พนักงาน</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="fi" type="number" id="pf-emp-pct" placeholder="5" step="0.5" min="0" max="30" style="flex:1" oninput="calcPvdPreview()">
+          <span style="font-size:13px;color:var(--text2)">%</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">% นายจ้าง</label>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="fi" type="number" id="pf-employer-pct" placeholder="5" step="0.5" min="0" max="30" style="flex:1" oninput="calcPvdPreview()">
+          <span style="font-size:13px;color:var(--text2)">%</span>
+        </div>
+      </div>
+    </div>
+    <!-- Preview -->
+    <div id="pvd-preview" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:4px;display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">พนักงาน</div><div style="font-size:14px;font-weight:600;color:var(--green)" id="pv-emp">฿0</div></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">นายจ้าง</div><div style="font-size:14px;font-weight:600;color:var(--blue)" id="pv-er">฿0</div></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">รวมเดือนนี้</div><div style="font-size:14px;font-weight:700" id="pv-total">฿0</div></div>
+      </div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn btn-dark" onclick="savePvd()" id="pvd-save-btn">บันทึก</button>
+      <button class="btn btn-ghost" onclick="closeOverlay('pvd-overlay')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="profilemgr-overlay">
   <div class="modal">
     <div class="modal-title">จัดการโปรไฟล์</div>
@@ -469,89 +526,14 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); font-weight: 500; 
   </div>
 </div>
 
-<div class="overlay" id="user-changepin-overlay">
-  <div class="modal">
-    <div class="modal-title">🔑 เปลี่ยน PIN ตัวเอง</div>
-    <div class="fg"><label class="fl">PIN ปัจจุบัน</label><input class="fi" type="password" id="up-old" placeholder="••••" maxlength="6"></div>
-    <div class="fg"><label class="fl">PIN ใหม่ (4-6 หลัก)</label><input class="fi" type="password" id="up-new" placeholder="••••" maxlength="6"></div>
-    <div class="fg"><label class="fl">ยืนยัน PIN ใหม่</label><input class="fi" type="password" id="up-confirm" placeholder="••••" maxlength="6"></div>
-    <div id="up-error" style="color:var(--red);font-size:13px;min-height:18px;margin-top:4px"></div>
-    <div class="modal-acts">
-      <button class="btn btn-dark" onclick="confirmUserChangePin()">บันทึก</button>
-      <button class="btn btn-ghost" onclick="closeOverlay('user-changepin-overlay')">ยกเลิก</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="admin-changepass-overlay">
-  <div class="modal">
-    <div class="modal-title">🔑 เปลี่ยน Password Admin</div>
-    <div class="fg"><label class="fl">Password ปัจจุบัน</label><input class="fi" type="password" id="cp-old" placeholder="••••••••"></div>
-    <div class="fg"><label class="fl">Password ใหม่</label><input class="fi" type="password" id="cp-new" placeholder="••••••••"></div>
-    <div class="fg"><label class="fl">ยืนยัน Password ใหม่</label><input class="fi" type="password" id="cp-confirm" placeholder="••••••••"></div>
-    <div id="cp-error" style="color:var(--red);font-size:12px;min-height:16px;margin-top:4px"></div>
-    <div class="modal-acts">
-      <button class="btn btn-dark" onclick="confirmChangePass()">บันทึก</button>
-      <button class="btn btn-ghost" onclick="closeOverlay('admin-changepass-overlay')">ยกเลิก</button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="admin-login-overlay">
-  <div class="modal">
-    <div class="modal-title">🔐 Admin Login</div>
-    <div class="fg"><label class="fl">Username</label><input class="fi" type="text" id="adm-user" placeholder="admin"></div>
-    <div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginAdmin()"></div>
-    <div id="adm-error" style="color:var(--red);font-size:12px;min-height:16px;margin-top:4px"></div>
-    <div class="modal-acts">
-      <button class="btn btn-dark" onclick="loginAdmin()">เข้าสู่ระบบ</button>
-      <button class="btn btn-ghost" onclick="closeOverlay('admin-login-overlay')">ยกเลิก</button>
-    </div>
-  </div>
-</div>
-
-<div id="admin-screen" class="screen" style="background:var(--bg)">
-  <div class="topbar">
-    <div class="tb-logo" style="color:var(--red)">⚙️ Admin Panel</div>
-    <div class="tb-right">
-      <span id="adm-who" style="font-size:12px;color:var(--text2)"></span>
-      <button class="btn btn-ghost" style="font-size:12px" onclick="showAdminChangePass()">🔑 เปลี่ยน Password</button>
-      <button class="btn btn-ghost" style="font-size:12px" onclick="logoutAdmin()">ออกจากระบบ</button>
-    </div>
-  </div>
-  <div class="content" style="max-width:600px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:15px;font-weight:600">จัดการโปรไฟล์ทั้งหมด</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-dark" onclick="showNewProfileModal()">+ สร้างโปรไฟล์</button>
-        <button class="btn btn-ghost" onclick="admRefresh()">↻ รีเฟรช</button>
-      </div>
-    </div>
-    <div id="adm-profile-list"></div>
-  </div>
-</div>
-
-<div class="overlay" id="admin-resetpin-overlay">
-  <div class="modal">
-    <div class="modal-title">Reset PIN</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">โปรไฟล์: <strong id="rp-name"></strong></div>
-    <div class="fg"><label class="fl">PIN ใหม่ (4-6 หลัก)</label><input class="fi" type="password" id="rp-pin" maxlength="6" placeholder="ใส่ PIN ใหม่"></div>
-    <div class="modal-acts">
-      <button class="btn btn-dark" onclick="confirmResetPin()">บันทึก</button>
-      <button class="btn btn-ghost" onclick="closeOverlay('admin-resetpin-overlay')">ยกเลิก</button>
-    </div>
-  </div>
-</div>
-
 <script>
-// ⚠️ เปลี่ยน URL และ KEY ตรงนี้เป็นของ Supabase ของคุณ
 const SUPABASE_URL = 'https://zgwrpgsklpdtjbpnflxi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_AgNZLYmkW82MKfvprNM9Ig_O0J5201q';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const BANKS = ['KTC','Kbank','SP','SCB','BBL'];
-const COLORS = ['#34C759','#007AFF','#FF3B30','#AF52DE','#FF9500','#5AC8FA','#FF2D55','#5856D6']; 
+const COLORS = ['#16a34a','#2563eb','#dc2626','#9333ea','#ea580c','#0891b2','#be185d','#4f46e5'];
 
 let profiles = [];
 let currentProfile = null;
@@ -563,6 +545,7 @@ let pinBuffer = '';
 let pinTarget = null;
 let saving = false;
 
+// ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
   initSelects();
   initColorSwatches();
@@ -598,16 +581,14 @@ function selectColor(el) {
   el.classList.add('sel');
 }
 
-// ── PROFILES (Database 100%) ──
+// ── PROFILES ──
 async function loadProfiles() {
-  try {
-    const { data, error } = await sb.from('profiles').select('*').order('created_at');
-    if (error) throw error;
-    profiles = data || [];
-  } catch(e) {
-    console.error('loadProfiles error:', e);
-    profiles = [];
-  }
+  const stored = localStorage.getItem('profiles');
+  profiles = stored ? JSON.parse(stored) : [];
+}
+
+function saveProfilesLocal() {
+  localStorage.setItem('profiles', JSON.stringify(profiles));
 }
 
 function renderProfileList() {
@@ -628,15 +609,10 @@ function renderProfileList() {
 function selectProfile(id) {
   pinTarget = profiles.find(p => p.id === id);
   if (!pinTarget) return;
-
-  if (!pinTarget.pin) {
-    alert('โปรไฟล์นี้ยังไม่มีการตั้ง PIN ในระบบ กรุณาสร้างใหม่ หรือแจ้ง Admin');
-    return;
-  }
-
   pinBuffer = '';
   document.getElementById('pin-who').textContent = pinTarget.name;
   document.getElementById('pin-error').textContent = '';
+  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'none';
   document.getElementById('profile-list').style.display = 'none';
   document.querySelector('.login-sub').style.display = 'none';
   document.getElementById('pin-section').style.display = 'block';
@@ -648,6 +624,7 @@ function backToProfiles() {
   document.getElementById('pin-section').style.display = 'none';
   document.getElementById('profile-list').style.display = 'flex';
   document.querySelector('.login-sub').style.display = 'block';
+  document.getElementById('profile-list').parentElement.querySelector('.btn-new-profile').style.display = 'block';
   pinTarget = null; pinBuffer = '';
 }
 
@@ -664,9 +641,8 @@ function renderPinPad() {
 function pinPress(key) {
   if (key === '⌫') { pinBuffer = pinBuffer.slice(0,-1); }
   else if (pinBuffer.length < (pinTarget?.pin?.length || 6)) { pinBuffer += key; }
-  
   renderPinDots();
-  if (pinBuffer.length > 0 && pinBuffer.length === pinTarget.pin.length) {
+  if (pinBuffer.length === pinTarget.pin.length) {
     setTimeout(() => checkPin(), 150);
   }
 }
@@ -700,6 +676,7 @@ function logout() {
   renderProfileList();
 }
 
+// ── NEW PROFILE MODAL ──
 function showNewProfileModal() {
   document.getElementById('np-name').value = '';
   document.getElementById('np-pin').value = '';
@@ -712,20 +689,14 @@ async function saveNewProfile() {
   const pin = document.getElementById('np-pin').value.trim();
   if (!name || !pin || pin.length < 4) return alert('กรุณากรอกชื่อและ PIN อย่างน้อย 4 หลัก');
   const color = document.querySelector('.color-swatch.sel')?.dataset.color || COLORS[0];
-  const id = crypto.randomUUID();
-  setSaving(true);
-  try {
-    const { error } = await sb.from('profiles').insert({ id, name, color, pin });
-    if (error) throw error;
-    
-    const p = { id, name, pin, color };
-    profiles.push(p);
-    closeOverlay('newprofile-overlay');
-    renderProfileList();
-    if (currentAdmin) admRefresh();
-  } catch(e) { alert(e.message); } finally { setSaving(false); }
+  const p = { id: Date.now().toString(), name, pin, color };
+  profiles.push(p);
+  saveProfilesLocal();
+  closeOverlay('newprofile-overlay');
+  renderProfileList();
 }
 
+// ── PROFILE MANAGER ──
 function showProfileMgr() {
   const list = document.getElementById('pm-list');
   list.innerHTML = profiles.map(p => `
@@ -738,62 +709,34 @@ function showProfileMgr() {
   openOverlay('profilemgr-overlay');
 }
 
-async function deleteProfile(id) {
+function deleteProfile(id) {
   if (!confirm('ลบโปรไฟล์นี้?')) return;
-  try {
-    const { error } = await sb.from('profiles').delete().eq('id', id);
-    if (error) throw error;
-    profiles = profiles.filter(p => p.id !== id);
-    showProfileMgr();
-  } catch(e) { alert(e.message); }
+  profiles = profiles.filter(p => p.id !== id);
+  saveProfilesLocal();
+  showProfileMgr();
 }
 
-function showUserChangePin() {
-  document.getElementById('up-old').value = '';
-  document.getElementById('up-new').value = '';
-  document.getElementById('up-confirm').value = '';
-  document.getElementById('up-error').textContent = '';
-  openOverlay('user-changepin-overlay');
-}
+let pvdEntries = [];
+let editPvdId = null;
 
-async function confirmUserChangePin() {
-  const oldPin = document.getElementById('up-old').value.trim();
-  const newPin = document.getElementById('up-new').value.trim();
-  const confirmPin = document.getElementById('up-confirm').value.trim();
-  const err = document.getElementById('up-error');
-
-  if (!oldPin || !newPin || !confirmPin) return err.textContent = 'กรุณากรอกให้ครบทุกช่อง';
-  if (oldPin !== currentProfile.pin) return err.textContent = 'PIN ปัจจุบันไม่ถูกต้อง';
-  if (newPin.length < 4) return err.textContent = 'PIN ใหม่ต้องมีอย่างน้อย 4 หลัก';
-  if (newPin !== confirmPin) return err.textContent = 'PIN ใหม่ไม่ตรงกัน';
-
-  try {
-    err.textContent = 'กำลังบันทึก...';
-    const { error } = await sb.from('profiles').update({ pin: newPin }).eq('id', currentProfile.id);
-    if (error) throw error;
-
-    currentProfile.pin = newPin;
-    profiles = profiles.map(p => p.id === currentProfile.id ? { ...p, pin: newPin } : p);
-    
-    closeOverlay('user-changepin-overlay');
-    alert('เปลี่ยน PIN สำเร็จแล้ว ✅');
-  } catch(e) { err.textContent = 'เกิดข้อผิดพลาด: ' + e.message; }
-}
-
+// ── DATA ──
 async function loadData() {
   document.getElementById('page-loader').style.display = 'flex';
   document.getElementById('page-content').style.display = 'none';
   const year = +document.getElementById('sel-year').value;
   const month = +document.getElementById('sel-month').value;
   try {
-    const [{ data: txData }, { data: crData }] = await Promise.all([
+    const [{ data: txData }, { data: crData }, { data: pvData }] = await Promise.all([
       sb.from('transactions').select('*').eq('profile_id', currentProfile.id),
-      sb.from('credit_installments').select('*').eq('profile_id', currentProfile.id)
+      sb.from('credit_installments').select('*').eq('profile_id', currentProfile.id),
+      sb.from('pvd_entries').select('*').eq('profile_id', currentProfile.id)
     ]);
     transactions = txData || [];
     credits = crData || [];
+    pvdEntries = pvData || [];
     renderDashboard(year, month);
     renderCredit();
+    renderPvd();
   } catch(e) { alert('โหลดไม่ได้: ' + e.message); }
   document.getElementById('page-loader').style.display = 'none';
   document.getElementById('page-content').style.display = 'block';
@@ -801,52 +744,50 @@ async function loadData() {
 
 function getMonthData(year, month) {
   const txns = transactions.filter(t => t.year === year && t.month === month);
-  const crs = credits.filter(c => {
-    const startDate = new Date(c.year, c.month - 1);
-    const targetDate = new Date(year, month - 1);
-    const diffMonths = (targetDate.getFullYear() - startDate.getFullYear()) * 12 + (targetDate.getMonth() - startDate.getMonth());
-    return diffMonths >= 0 && diffMonths < (c.total_installments || 0);
-  });
-  const crAsTxn = crs.map(c => {
-    const startDate = new Date(c.year, c.month - 1);
-    const targetDate = new Date(year, month - 1);
-    const currentInstallment = ((targetDate.getFullYear() - startDate.getFullYear()) * 12 + (targetDate.getMonth() - startDate.getMonth())) + 1;
-    return { id: 'cr-'+c.id, item: `${c.item} (${c.bank}) [งวด ${currentInstallment}/${c.total_installments}]`, income: 0, outcome: c.amount, isCredit: true, _cr: c };
-  });
+  const crs = credits.filter(c => c.year === year && c.month === month);
+  const crAsTxn = crs.map(c => ({ id: 'cr-'+c.id, item: `${c.item} (${c.bank})`, income: 0, outcome: c.amount, isCredit: true, _cr: c }));
   return [...txns, ...crAsTxn];
 }
 
-function renderDashboard(year, month) {
-  let balanceForward = 0;
-  const allDates = [...transactions, ...credits].map(i => new Date(i.year, i.month - 1));
-  if (allDates.length > 0) {
-    const oldestDate = new Date(Math.min(...allDates));
-    const targetDate = new Date(year, month - 1);
-    let tempDate = new Date(oldestDate);
-    while (tempDate < targetDate) {
-      const d = getMonthData(tempDate.getFullYear(), tempDate.getMonth() + 1);
-      balanceForward += d.reduce((s, t) => s + (t.income || 0) - (t.outcome || 0), 0);
-      tempDate.setMonth(tempDate.getMonth() + 1);
+// คำนวณยอดคงเหลือสะสมถึงเดือนก่อนหน้า
+function getPrevBalance(year, month) {
+  // รวมทุกเดือนก่อนหน้า
+  let total = 0;
+  transactions.forEach(t => {
+    if (t.year < year || (t.year === year && t.month < month)) {
+      total += (t.income || 0) - (t.outcome || 0);
     }
-  }
+  });
+  credits.forEach(c => {
+    if (c.year < year || (c.year === year && c.month < month)) {
+      total -= (c.amount || 0);
+    }
+  });
+  return total;
+}
 
+function renderDashboard(year, month) {
   const data = getMonthData(year, month);
+  const carry = getPrevBalance(year, month);
   const income = data.reduce((s,t) => s+(t.income||0), 0);
   const outcome = data.reduce((s,t) => s+(t.outcome||0), 0);
-  const monthlyBalance = income - outcome;
-  const totalBalance = balanceForward + monthlyBalance;
+  const bal = carry + income - outcome;
+
+  const mcarry = document.getElementById('m-carry');
+  mcarry.textContent = '฿' + carry.toLocaleString();
+  mcarry.className = 'metric-val ' + (carry >= 0 ? 'green' : 'red');
+  mcarry.style.fontSize = '16px';
 
   document.getElementById('m-income').textContent = '฿' + income.toLocaleString();
   document.getElementById('m-outcome').textContent = '฿' + outcome.toLocaleString();
-  
   const mbal = document.getElementById('m-balance');
-  mbal.textContent = '฿' + totalBalance.toLocaleString();
-  mbal.className = 'metric-val ' + (totalBalance >= 0 ? 'green' : 'red');
-  
-  document.getElementById('table-title').innerHTML = `รายการ ${MONTHS[month-1]} ${year} <br> <small style="font-weight:400; color:var(--text2)"> (ยอดยกมา: ฿${balanceForward.toLocaleString()})</small>`;
-  
+  mbal.textContent = '฿' + bal.toLocaleString();
+  mbal.className = 'metric-val ' + (bal >= 0 ? 'green' : 'red');
+  document.getElementById('table-title').textContent = `รายการ ${MONTHS[month-1]} ${year}`;
+
+  // รายการแรกในตาราง = ยกยอด (ถ้ามี)
   renderChart(year, month);
-  renderTxnTable(data, balanceForward);
+  renderTxnTable(data, carry);
 }
 
 function renderChart(year, month) {
@@ -861,33 +802,31 @@ function renderChart(year, month) {
   document.getElementById('chart-bars').innerHTML = bars.map(b => `
     <div class="bar-grp">
       <div class="bars">
-        <div class="bar bar-g" style="height:${Math.max(4,b.income/maxV*80)}px" title="รายรับ ฿${b.income.toLocaleString()}"></div>
-        <div class="bar bar-r" style="height:${Math.max(4,b.outcome/maxV*80)}px" title="รายจ่าย ฿${b.outcome.toLocaleString()}"></div>
+        <div class="bar bar-g" style="height:${Math.max(2,b.income/maxV*80)}px" title="รายรับ ฿${b.income.toLocaleString()}"></div>
+        <div class="bar bar-r" style="height:${Math.max(2,b.outcome/maxV*80)}px" title="รายจ่าย ฿${b.outcome.toLocaleString()}"></div>
       </div>
       <div class="bar-lbl">${b.lbl}</div>
     </div>
   `).join('');
 }
 
-function renderTxnTable(data, balanceForward = 0) {
+function renderTxnTable(data, carry = 0) {
   const body = document.getElementById('txn-body');
-  if (!data.length && balanceForward === 0) { 
-    body.innerHTML = '<tr class="empty-row"><td colspan="6">ไม่มีข้อมูลในเดือนนี้</td></tr>'; 
-    return; 
-  }
-
-  let running = balanceForward;
-  let rowsHtml = '';
-
-  if (balanceForward !== 0) {
-    rowsHtml += `<tr style="background:var(--surface2)">
-      <td colspan="4" style="font-weight:500">ยอดยกมาจากเดือนก่อน</td>
-      <td class="r mono ${balanceForward >= 0 ? 'green' : 'red'}">฿${balanceForward.toLocaleString()}</td>
+  let rows = '';
+  // แถวยกยอด
+  if (carry !== 0) {
+    rows += `<tr style="background:var(--surface2)">
+      <td><span style="font-size:12px;font-weight:600;color:var(--text2)">ยกยอดจากเดือนก่อน</span></td>
+      <td><span class="badge badge-gray">ยกยอด</span></td>
+      <td class="r mono"><span class="${carry>=0?'green':'red'}">฿${carry.toLocaleString()}</span></td>
+      <td class="r mono"><span class="muted">-</span></td>
+      <td class="r mono"><span class="${carry>=0?'green':'red'}">฿${carry.toLocaleString()}</span></td>
       <td></td>
     </tr>`;
   }
-
-  rowsHtml += data.map(item => {
+  if (!data.length && carry === 0) { body.innerHTML = '<tr class="empty-row"><td colspan="6">ไม่มีข้อมูลในเดือนนี้</td></tr>'; return; }
+  let running = carry;
+  rows += data.map(item => {
     running += (item.income||0) - (item.outcome||0);
     return `<tr>
       <td>${item.item}${item.source==='line_slip'?` <span class="badge badge-line">LINE</span>`:''}</td>
@@ -896,45 +835,186 @@ function renderTxnTable(data, balanceForward = 0) {
       <td class="r mono">${(item.outcome||0)>0?`<span class="red">฿${item.outcome.toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
       <td class="r mono"><span class="${running>=0?'green':'red'}">฿${running.toLocaleString()}</span></td>
       <td class="c">
-        ${!item.isCredit ? `
-        <button class="act-btn e" onclick="openEditTxn('${item.id}')" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-        <button class="act-btn d" onclick="deleteTxnItem('${item.id}')" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-        ` : `<span class="muted" style="font-size:10px">จัดการที่บัตรเครดิต</span>`}
+        <button class="act-btn e" onclick="${item.isCredit?`openEditCredit('${item._cr.id}')`:`openEditTxn('${item.id}')`}" title="แก้ไข"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="act-btn d" onclick="${item.isCredit?`deleteCreditItem('${item._cr.id}')`:`deleteTxnItem('${item.id}')`}" title="ลบ"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
       </td>
     </tr>`;
   }).join('');
-  
-  body.innerHTML = rowsHtml;
+  body.innerHTML = rows;
 }
 
-function renderCredit() {
+// ── PVD ──
+function getPvdSettings() {
+  const key = `pvd_settings_${currentProfile?.id}`;
+  try { return JSON.parse(localStorage.getItem(key)) || { seed: 0, empPct: 5 }; }
+  catch { return { seed: 0, empPct: 5 }; }
+}
+
+function savePvdSettings() {
+  const seed = +document.getElementById('pvd-seed').value || 0;
+  const empPct = +document.getElementById('pvd-emp-pct').value || 5;
+  const key = `pvd_settings_${currentProfile?.id}`;
+  localStorage.setItem(key, JSON.stringify({ seed, empPct }));
+  renderPvd();
+}
+
+function loadPvdSettingsUI() {
+  const s = getPvdSettings();
+  document.getElementById('pvd-seed').value = s.seed || '';
+  document.getElementById('pvd-emp-pct').value = s.empPct || 5;
+}
+
+function calcPvdPreview() {
+  const salary = +document.getElementById('pf-salary').value || 0;
+  const empPct = +document.getElementById('pf-emp-pct').value || 0;
+  const erPct = +document.getElementById('pf-employer-pct').value || 0;
+  const emp = Math.round(salary * empPct / 100);
+  const er = Math.round(salary * erPct / 100);
+  const total = emp + er;
+  const preview = document.getElementById('pvd-preview');
+  if (salary > 0) {
+    preview.style.display = 'block';
+    document.getElementById('pv-emp').textContent = '฿' + emp.toLocaleString();
+    document.getElementById('pv-er').textContent = '฿' + er.toLocaleString();
+    document.getElementById('pv-total').textContent = '฿' + total.toLocaleString();
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function renderPvd() {
+  const settings = getPvdSettings();
+  const seed = settings.seed || 0;
+  const monthlyTotal = pvdEntries.reduce((s,p) => {
+    const emp = Math.round((p.salary||0) * (p.emp_pct||0) / 100);
+    const er = Math.round((p.salary||0) * (p.employer_pct||0) / 100);
+    return s + emp + er;
+  }, 0);
+  const grandTotal = seed + monthlyTotal;
+
+  document.getElementById('pvd-m-seed').textContent = '฿' + seed.toLocaleString();
+  document.getElementById('pvd-m-monthly').textContent = '฿' + monthlyTotal.toLocaleString();
+  document.getElementById('pvd-total').textContent = '฿' + grandTotal.toLocaleString();
+  document.getElementById('pvd-months').textContent = pvdEntries.length;
+
+  const body = document.getElementById('pvd-body');
+  if (!pvdEntries.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="8">ยังไม่มีข้อมูล PVD — กด "บันทึกเดือนนี้" เพื่อเริ่ม</td></tr>';
+    return;
+  }
+  let cumulative = seed;
+  body.innerHTML = pvdEntries.sort((a,b) => a.year-b.year||a.month-b.month).map(p => {
+    const emp = Math.round((p.salary||0) * (p.emp_pct||0) / 100);
+    const er = Math.round((p.salary||0) * (p.employer_pct||0) / 100);
+    const sum = emp + er;
+    cumulative += sum;
+    return `<tr>
+      <td>${MONTHS[p.month-1]} ${p.year}</td>
+      <td class="r mono">${(p.salary||0).toLocaleString()}</td>
+      <td class="r mono" style="color:var(--text2)">${p.emp_pct||0}%</td>
+      <td class="r mono green">฿${emp.toLocaleString()}</td>
+      <td class="r mono" style="color:var(--text2)">${p.employer_pct||0}%</td>
+      <td class="r mono" style="color:var(--blue)">฿${er.toLocaleString()}</td>
+      <td class="r mono" style="font-weight:600">฿${sum.toLocaleString()}</td>
+      <td class="c">
+        <button class="act-btn e" onclick="openEditPvd('${p.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+        <button class="act-btn d" onclick="deletePvd('${p.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openPvdForm() {
+  editPvdId = null;
+  document.getElementById('pvd-modal-title').textContent = 'บันทึกเงินสมทบ PVD';
+  document.getElementById('pvd-save-btn').textContent = 'บันทึก';
+  document.getElementById('pvd-preview').style.display = 'none';
+  const now = new Date();
+  const ms = document.getElementById('pf-month');
+  ms.innerHTML = MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join('');
+  document.getElementById('pf-year').value = now.getFullYear();
+  ms.value = now.getMonth() + 1;
+  document.getElementById('pf-salary').value = '';
+  document.getElementById('pf-emp-pct').value = getPvdSettings().empPct || 5;
+  document.getElementById('pf-employer-pct').value = '';
+  openOverlay('pvd-overlay');
+}
+
+function openEditPvd(id) {
+  const p = pvdEntries.find(p => p.id === id);
+  if (!p) return;
+  editPvdId = id;
+  document.getElementById('pvd-modal-title').textContent = 'แก้ไขข้อมูล PVD';
+  document.getElementById('pvd-save-btn').textContent = 'อัปเดต';
+  const ms = document.getElementById('pf-month');
+  ms.innerHTML = MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join('');
+  document.getElementById('pf-year').value = p.year;
+  ms.value = p.month;
+  document.getElementById('pf-salary').value = p.salary || '';
+  document.getElementById('pf-emp-pct').value = p.emp_pct || '';
+  document.getElementById('pf-employer-pct').value = p.employer_pct || '';
+  calcPvdPreview();
+  openOverlay('pvd-overlay');
+}
+
+async function savePvd() {
+  const salary = +document.getElementById('pf-salary').value || 0;
+  const emp_pct = +document.getElementById('pf-emp-pct').value || 0;
+  const employer_pct = +document.getElementById('pf-employer-pct').value || 0;
+  if (!salary) return alert('กรุณากรอกเงินเดือน');
+  if (!emp_pct && !employer_pct) return alert('กรุณากรอก % อย่างน้อย 1 ฝ่าย');
+  const data = {
+    year: +document.getElementById('pf-year').value,
+    month: +document.getElementById('pf-month').value,
+    salary, emp_pct, employer_pct,
+    profile_id: currentProfile.id
+  };
+  setSaving(true);
+  try {
+    if (editPvdId) {
+      const { error } = await sb.from('pvd_entries').update(data).eq('id', editPvdId);
+      if (error) throw error;
+      pvdEntries = pvdEntries.map(p => p.id === editPvdId ? { ...p, ...data } : p);
+    } else {
+      const { data: d, error } = await sb.from('pvd_entries').insert(data).select().single();
+      if (error) throw error;
+      pvdEntries.push(d);
+    }
+    closeOverlay('pvd-overlay');
+    renderPvd();
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
+
+async function deletePvd(id) {
+  if (!confirm('ลบข้อมูล PVD เดือนนี้?')) return;
+  setSaving(true);
+  try {
+    const { error } = await sb.from('pvd_entries').delete().eq('id', id);
+    if (error) throw error;
+    pvdEntries = pvdEntries.filter(p => p.id !== id);
+    renderPvd();
+  } catch(e) { alert(e.message); } finally { setSaving(false); }
+}
   const bankGrid = document.getElementById('bank-grid');
   const bankTotals = {};
   credits.forEach(c => { bankTotals[c.bank] = (bankTotals[c.bank]||0) + c.amount; });
   const cards = BANKS.filter(b => bankTotals[b]).map(b => `<div class="bank-card"><div class="bank-name">${b}</div><div class="bank-total">฿${bankTotals[b].toLocaleString()}</div></div>`).join('');
   bankGrid.innerHTML = cards || '';
   const body = document.getElementById('credit-body');
-  if (!credits.length) { body.innerHTML = '<tr class="empty-row"><td colspan="7">ไม่มีรายการผ่อน</td></tr>'; return; }
-  body.innerHTML = credits.sort((a,b)=>a.year-b.year||a.month-b.month).map(c => {
-    const total = c.total_installments || 0;
-    const installmentBadge = total
-      ? `<span style="font-size:11px;font-family:var(--mono);color:var(--text2)">ทั้งหมด ${total} งวด</span>`
-      : '<span class="muted">-</span>';
-    return `<tr>
+  if (!credits.length) { body.innerHTML = '<tr class="empty-row"><td colspan="5">ไม่มีรายการผ่อน</td></tr>'; return; }
+  body.innerHTML = credits.sort((a,b)=>a.year-b.year||a.month-b.month).map(c => `<tr>
     <td>${MONTHS[c.month-1]} ${c.year}</td>
     <td><span class="badge badge-blue">${c.bank}</span></td>
     <td>${c.item}</td>
     <td class="r mono red">฿${c.amount.toLocaleString()}</td>
-    <td class="r mono">${(c.interest||0)>0?`<span class="red">฿${(c.interest).toLocaleString()}</span>`:'<span class="muted">-</span>'}</td>
-    <td class="c">${installmentBadge}</td>
     <td class="c">
       <button class="act-btn e" onclick="openEditCredit('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
       <button class="act-btn d" onclick="deleteCreditItem('${c.id}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
     </td>
-  </tr>`;
-  }).join('');
+  </tr>`).join('');
 }
 
+// ── TXN CRUD ──
 function openTxnForm() {
   editTxnId = null;
   document.getElementById('txn-modal-title').textContent = 'เพิ่มรายการ';
@@ -994,23 +1074,7 @@ async function deleteTxnItem(id) {
   } catch(e) { alert(e.message); } finally { setSaving(false); }
 }
 
-function calcMonthlyPayment() {
-  const principal = +document.getElementById('cf-principal').value || 0;
-  const rate = +document.getElementById('cf-interest-rate').value || 0;
-  const total = +document.getElementById('cf-total-installments').value || 0;
-  if (principal > 0 && total > 0) {
-    const totalInterest = principal * (rate / 100);
-    const totalAmount = principal + totalInterest;
-    const monthly = totalAmount / total;
-    const monthlyInterest = totalInterest / total;
-    document.getElementById('cf-amount').value = monthly.toFixed(2);
-    document.getElementById('cf-interest').value = monthlyInterest.toFixed(2);
-  } else {
-    document.getElementById('cf-amount').value = '';
-    document.getElementById('cf-interest').value = '';
-  }
-}
-
+// ── CREDIT CRUD ──
 function openCreditForm() {
   editCreditId = null;
   document.getElementById('credit-modal-title').textContent = 'เพิ่มรายการผ่อน';
@@ -1019,11 +1083,7 @@ function openCreditForm() {
   document.getElementById('cf-month').value = +document.getElementById('sel-month').value;
   document.getElementById('cf-bank').value = '';
   document.getElementById('cf-item').value = '';
-  document.getElementById('cf-principal').value = '';
-  document.getElementById('cf-interest-rate').value = '0';
   document.getElementById('cf-amount').value = '';
-  document.getElementById('cf-interest').value = '';
-  document.getElementById('cf-total-installments').value = '';
   openOverlay('credit-overlay');
 }
 
@@ -1037,24 +1097,16 @@ function openEditCredit(id) {
   document.getElementById('cf-month').value = c.month;
   document.getElementById('cf-bank').value = c.bank;
   document.getElementById('cf-item').value = c.item;
-  document.getElementById('cf-principal').value = c.principal || '';
-  document.getElementById('cf-interest-rate').value = c.interest_rate || 0;
-  document.getElementById('cf-total-installments').value = c.total_installments || '';
-  document.getElementById('cf-amount').value = c.amount || '';
-  document.getElementById('cf-interest').value = c.interest || '';
+  document.getElementById('cf-amount').value = c.amount;
   openOverlay('credit-overlay');
 }
 
 async function saveCredit() {
   const bank = document.getElementById('cf-bank').value;
   const item = document.getElementById('cf-item').value.trim();
-  const principal = +document.getElementById('cf-principal').value || 0;
-  const interest_rate = +document.getElementById('cf-interest-rate').value || 0;
   const amount = +document.getElementById('cf-amount').value;
-  const interest = +document.getElementById('cf-interest').value || 0;
-  const total_installments = +document.getElementById('cf-total-installments').value || 0;
-  if (!bank || !item || !principal || !total_installments) return alert('กรุณากรอกยอดเต็มและจำนวนงวดให้ครบ');
-  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, principal, interest_rate, amount, interest, total_installments, profile_id: currentProfile.id };
+  if (!bank || !item || !amount) return alert('กรุณากรอกให้ครบ');
+  const data = { year: +document.getElementById('cf-year').value, month: +document.getElementById('cf-month').value, bank, item, amount, profile_id: currentProfile.id };
   setSaving(true);
   try {
     if (editCreditId) {
@@ -1084,142 +1136,19 @@ async function deleteCreditItem(id) {
   } catch(e) { alert(e.message); } finally { setSaving(false); }
 }
 
-let currentAdmin = null;
-let admProfiles = [];
-let resetPinTargetId = null;
-
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-function showAdminChangePass() {
-  document.getElementById('cp-old').value = '';
-  document.getElementById('cp-new').value = '';
-  document.getElementById('cp-confirm').value = '';
-  document.getElementById('cp-error').textContent = '';
-  openOverlay('admin-changepass-overlay');
-}
-
-async function confirmChangePass() {
-  const oldPass = document.getElementById('cp-old').value.trim();
-  const newPass = document.getElementById('cp-new').value.trim();
-  const confirm = document.getElementById('cp-confirm').value.trim();
-  const err = document.getElementById('cp-error');
-  if (!oldPass || !newPass || !confirm) { err.textContent = 'กรุณากรอกให้ครบ'; return; }
-  const hashedOld = await sha256(oldPass);
-  if (hashedOld !== currentAdmin.password) { err.textContent = 'Password ปัจจุบันไม่ถูกต้อง'; return; }
-  if (newPass.length < 6) { err.textContent = 'Password ใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'; return; }
-  if (newPass !== confirm) { err.textContent = 'Password ใหม่ไม่ตรงกัน'; return; }
-  try {
-    err.textContent = 'กำลังบันทึก...';
-    const hashed = await sha256(newPass);
-    const { error } = await sb.from('admins').update({ password: hashed }).eq('id', currentAdmin.id);
-    if (error) throw error;
-    currentAdmin.password = hashed;
-    closeOverlay('admin-changepass-overlay');
-    alert('เปลี่ยน Password สำเร็จแล้ว ✅');
-  } catch(e) { err.textContent = e.message; }
-}
-
-function showAdminLogin() {
-  document.getElementById('adm-user').value = '';
-  document.getElementById('adm-pass').value = '';
-  document.getElementById('adm-error').textContent = '';
-  openOverlay('admin-login-overlay');
-}
-
-async function loginAdmin() {
-  const username = document.getElementById('adm-user').value.trim();
-  const password = document.getElementById('adm-pass').value.trim();
-  if (!username || !password) return;
-  document.getElementById('adm-error').textContent = '';
-  try {
-    const { data, error } = await sb.from('admins').select('*').eq('username', username).single();
-    if (error || !data) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
-    const hashed = await sha256(password);
-    if (hashed !== data.password) { document.getElementById('adm-error').textContent = 'Username หรือ Password ไม่ถูกต้อง'; return; }
-    currentAdmin = data;
-    closeOverlay('admin-login-overlay');
-    enterAdminPanel();
-  } catch(e) { document.getElementById('adm-error').textContent = e.message; }
-}
-
-function enterAdminPanel() {
-  document.getElementById('login-screen').classList.remove('active');
-  document.getElementById('admin-screen').classList.add('active');
-  document.getElementById('adm-who').textContent = currentAdmin.username;
-  admRefresh();
-}
-
-function logoutAdmin() {
-  currentAdmin = null;
-  document.getElementById('admin-screen').classList.remove('active');
-  document.getElementById('login-screen').classList.add('active');
-}
-
-async function admRefresh() {
-  const list = document.getElementById('adm-profile-list');
-  list.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:16px 0">กำลังโหลด...</div>';
-  try {
-    const { data, error } = await sb.from('profiles').select('*').order('created_at');
-    if (error) throw error;
-    admProfiles = data || [];
-    if (!admProfiles.length) { list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:16px 0">ไม่มีโปรไฟล์</div>'; return; }
-    list.innerHTML = admProfiles.map(p => `
-    <div class="pm-item-admin">
-      <div class="pm-av" style="background:${p.color};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${p.name.slice(0,2).toUpperCase()}</div>
-      <div>
-        <div style="font-size:13px;font-weight:500">${p.name}</div>
-        <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">id: ${p.id.slice(0,8)}...</div>
-      </div>
-      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button class="pm-reset-btn" onclick="showResetPin('${p.id}','${p.name}')">Reset PIN</button>
-        <button class="act-btn d" onclick="admDeleteProfile('${p.id}','${p.name}')">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
-  } catch(e) { list.innerHTML = '<div style="color:var(--red);font-size:13px">' + e.message + '</div>'; }
-}
-
-function admDeleteProfile(id, name) {
-  if (!confirm('ลบโปรไฟล์ "' + name + '" และข้อมูลทั้งหมด?')) return;
-  sb.from('profiles').delete().eq('id', id).then(({ error }) => {
-    if (error) { alert(error.message); return; }
-    admRefresh();
-  });
-}
-
-function showResetPin(id, name) {
-  resetPinTargetId = id;
-  document.getElementById('rp-name').textContent = name;
-  document.getElementById('rp-pin').value = '';
-  openOverlay('admin-resetpin-overlay');
-}
-
-async function confirmResetPin() {
-  const newPin = document.getElementById('rp-pin').value.trim();
-  if (!newPin || newPin.length < 4) return alert('PIN ต้องมีอย่างน้อย 4 หลัก');
-  try {
-    const { error } = await sb.from('profiles').update({ pin: newPin }).eq('id', resetPinTargetId);
-    if (error) throw error;
-    profiles = profiles.map(p => p.id === resetPinTargetId ? { ...p, pin: newPin } : p);
-    closeOverlay('admin-resetpin-overlay');
-    alert('Reset PIN สำเร็จแล้ว ✅');
-    admRefresh();
-  } catch(e) { alert(e.message); }
-}
-
+// ── UI HELPERS ──
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
   document.getElementById('tab-credit').style.display = tab === 'credit' ? 'block' : 'none';
+  document.getElementById('tab-pvd').style.display = tab === 'pvd' ? 'block' : 'none';
+  document.querySelector('.ctrl-right').style.visibility = tab === 'pvd' ? 'hidden' : 'visible';
+  if (tab === 'pvd') { loadPvdSettingsUI(); renderPvd(); }
 }
 
 function openOverlay(id) { document.getElementById(id).classList.add('open'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
 
 function setSaving(v) {
